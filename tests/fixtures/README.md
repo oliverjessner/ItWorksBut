@@ -1,0 +1,1 @@
+Fixtures are created dynamically in `tests/scanner.test.js` with temporary project directories. This keeps the repository small while still testing realistic package, git, Node, Electron, and Tauri layouts.
