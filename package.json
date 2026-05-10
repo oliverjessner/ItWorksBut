@@ -1,6 +1,6 @@
 {
     "name": "itworksbut",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Static CI checks for common security, repo, dependency, build, and deployment risks in JavaScript vibe coding projects.",
     "type": "module",
     "bin": {
