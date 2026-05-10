@@ -22,7 +22,9 @@
         "check": "npm test",
         "audit": "npm audit",
         "dev": "node ./bin/itworksbut.js scan --verbose",
-        "brew:formula": "node ./scripts/publish-brew.js"
+        "publish": "node ./scripts/publish.js",
+        "brew:formula": "node ./scripts/publish-brew.js",
+        "prepublishOnly": "node ./scripts/guard-npm-publish.js"
     },
     "keywords": [
         "security",

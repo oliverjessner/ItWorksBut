@@ -36,24 +36,27 @@ https://github.com/oliverjessner/homebrew-tap
     └── itworksbut.rb
 ```
 
-This repository contains the script that generates and optionally commits that formula:
+This repository contains a one-command release script. It runs checks, publishes the npm package, generates the Homebrew formula, commits it to the tap, and pushes the tap:
 
 ```sh
-npm run brew:formula -- --dry-run
-npm run brew:formula -- --tap-path ../homebrew-tap
-npm run brew:formula -- --tap-path ../homebrew-tap --commit
+npm run publish
 ```
 
-Release order:
+Do not run `npm publish` directly. The package blocks direct npm publishing so the Homebrew tap cannot be forgotten.
+
+Preview everything without publishing:
 
 ```sh
-npm publish
-npm run brew:formula -- --tap-path ../homebrew-tap --commit
-cd ../homebrew-tap
-git push
+npm run publish -- --dry-run
 ```
 
-Use `--push` only when you want the script to push the tap commit itself.
+By default the script expects the tap checkout at `../homebrew-tap`. Override it when needed:
+
+```sh
+npm run publish -- --tap-path /path/to/homebrew-tap
+```
+
+Use `--no-push` when you want the script to commit the tap formula but leave the push to you.
 
 ## Local Usage
 
