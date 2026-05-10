@@ -12,6 +12,49 @@ It only reads files and reports findings. It does not call external APIs, does n
 npx itworksbut scan
 ```
 
+### Homebrew
+
+After the formula is committed to the tap, install with:
+
+```sh
+brew tap oliverjessner/tap
+brew install itworksbut
+itworksbut scan
+```
+
+One-line install:
+
+```sh
+brew install oliverjessner/tap/itworksbut
+```
+
+The `itworksbut` formula belongs in the Homebrew tap repo, not in this app repo:
+
+```text
+https://github.com/oliverjessner/homebrew-tap
+└── Formula/
+    └── itworksbut.rb
+```
+
+This repository contains the script that generates and optionally commits that formula:
+
+```sh
+npm run brew:formula -- --dry-run
+npm run brew:formula -- --tap-path ../homebrew-tap
+npm run brew:formula -- --tap-path ../homebrew-tap --commit
+```
+
+Release order:
+
+```sh
+npm publish
+npm run brew:formula -- --tap-path ../homebrew-tap --commit
+cd ../homebrew-tap
+git push
+```
+
+Use `--push` only when you want the script to push the tap commit itself.
+
 ## Local Usage
 
 ```sh

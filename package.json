@@ -4,8 +4,14 @@
     "description": "Static CI checks for common security, repo, dependency, build, and deployment risks in JavaScript vibe coding projects.",
     "type": "module",
     "bin": {
-        "itworksbut": "./bin/itworksbut.js"
+        "itworksbut": "bin/itworksbut.js"
     },
+    "files": [
+        "bin",
+        "src",
+        "README.md",
+        "itworksbut.config.json"
+    ],
     "engines": {
         "node": ">=20"
     },
@@ -15,7 +21,8 @@
         "lint": "node --check ./bin/itworksbut.js",
         "check": "npm test",
         "audit": "npm audit",
-    "dev": "node ./bin/itworksbut.js scan --verbose"
+        "dev": "node ./bin/itworksbut.js scan --verbose",
+        "brew:formula": "node ./scripts/publish-brew.js"
     },
     "keywords": [
         "security",
