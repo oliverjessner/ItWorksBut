@@ -21,7 +21,7 @@ function main() {
     step("test", "npm", ["test"]);
     step("build", "npm", ["run", "build"]);
     step("audit", "npm", ["audit", "--audit-level=high"]);
-    step("self scan", "node", ["./bin/itworksbut.js", "scan", "--config", "itworksbut.self.config.json", "--no-banner", "--no-spinner", "--no-color", "--fail-on", "high"]);
+    step("self scan", "node", ["./bin/itworksbut.js", "scan", "--config", "itworksbut.self.config.json", "--no-banner", "--no-color", "--fail-on", "high"]);
   }
 
   if (!options.skipNpm) {
