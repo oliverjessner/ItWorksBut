@@ -29,6 +29,7 @@ test("publish script documents the one-command release flow", () => {
   });
 
   assert.match(output, /npm run publish/);
+  assert.match(output, /npm whoami/);
   assert.match(output, /npm publish --ignore-scripts --access public/);
   assert.match(output, /Commit and push the Homebrew tap/);
 });

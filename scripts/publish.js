@@ -25,6 +25,8 @@ function main() {
   }
 
   if (!options.skipNpm) {
+    if (!options.dryRun) assertNpmAuth();
+
     const npmArgs = ["publish", "--ignore-scripts"];
     if (options.access) npmArgs.push("--access", options.access);
     if (options.tag) npmArgs.push("--tag", options.tag);
@@ -95,6 +97,28 @@ function step(label, command, args) {
   });
 }
 
+function assertNpmAuth() {
+  process.stdout.write("\n==> npm auth\n");
+  try {
+    const user = execFileSync("npm", ["whoami"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    }).trim();
+    process.stdout.write(`Authenticated as ${user}\n`);
+  } catch {
+    throw new Error(`npm is not authenticated.
+
+Run:
+  npm login
+
+Then retry:
+  npm run publish
+
+For CI, configure an npm automation token and write it to ~/.npmrc before running the publish script.`);
+  }
+}
+
 function printUsage() {
   process.stdout.write(`Publish ItWorksBut to npm and Homebrew.
 
@@ -107,9 +131,10 @@ Default release flow:
   2. npm run build
   3. npm audit --audit-level=high
   4. node ./bin/itworksbut.js scan --config itworksbut.self.config.json --fail-on high
-  5. npm publish --ignore-scripts --access public
-  6. Generate Formula/itworksbut.rb in the Homebrew tap
-  7. Commit and push the Homebrew tap
+  5. npm whoami
+  6. npm publish --ignore-scripts --access public
+  7. Generate Formula/itworksbut.rb in the Homebrew tap
+  8. Commit and push the Homebrew tap
 
 Options:
   --dry-run          Run checks, npm publish --dry-run, and print the brew formula.

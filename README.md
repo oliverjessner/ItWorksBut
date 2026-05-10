@@ -39,6 +39,7 @@ https://github.com/oliverjessner/homebrew-tap
 This repository contains a one-command release script. It runs checks, publishes the npm package, generates the Homebrew formula, commits it to the tap, and pushes the tap:
 
 ```sh
+npm login
 npm run publish
 ```
 
