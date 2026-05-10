@@ -10,15 +10,6 @@ It only reads files and reports findings. It does not call external APIs, does n
 
 ## Installation
 
-With npm:
-
-```sh
-npm install --save-dev itworksbut
-npx itworksbut scan
-```
-
-Or install globally:
-
 ```sh
 npm install --global itworksbut
 itworksbut scan
@@ -51,6 +42,7 @@ itworksbut scan --json
 itworksbut scan --sarif > itworksbut.sarif
 itworksbut scan --config itworksbut.config.json
 itworksbut scan --verbose
+itworksbut --version
 ```
 
 ## Options
@@ -65,10 +57,10 @@ itworksbut scan [options]
 - `--json`: Print machine-readable JSON only. No banner, colors, spinner, table, or extra text.
 - `--sarif`: Print SARIF JSON for GitHub Code Scanning. No banner, colors, spinner, table, or extra text.
 - `--verbose`: Include scanner warnings and extra metadata in console output.
-- `--compact`: Print one-line findings for tighter terminal output.
 - `--quiet`: Print only the summary.
 - `--no-color`: Disable colored output.
 - `--no-banner`: Disable the ASCII intro banner.
+- `--version`, `-v`: Print the installed ItWorksBut version.
 
 Exit codes:
 
@@ -90,7 +82,6 @@ Console-only flags:
 
 - `--no-color`
 - `--no-banner`
-- `--compact`
 - `--quiet`
 - `--verbose`
 

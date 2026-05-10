@@ -1,6 +1,7 @@
 import checks from "../checks/index.js";
 import { createContext } from "./context.js";
 import { normalizeFinding, severityRank } from "./findings.js";
+import { packageInfo } from "./packageInfo.js";
 
 export async function scanProject(options = {}) {
   const startedAt = new Date();
@@ -43,7 +44,7 @@ export async function scanProject(options = {}) {
     config: context.config,
     meta: {
       tool: "ItWorksBut",
-      version: "0.1.0",
+      version: packageInfo.version,
       rootPath: context.rootPath,
       packageManager: context.packageManager,
       gitAvailable: context.gitAvailable,

@@ -61,12 +61,6 @@ function writeFinding(finding, options) {
     const title = getConsoleFindingTitle(finding);
     const location = finding.file ? (finding.line ? `${finding.file}:${finding.line}` : finding.file) : '';
 
-    if (options.compact) {
-        const where = location ? `${location} - ` : '';
-        process.stdout.write(`${severity.compactText} ${finding.checkId} ${where}${title}\n`);
-        return;
-    }
-
     process.stdout.write(
         `${severity.text}  ${colors.bold(title)}${finding.heuristic ? colors.gray(' (heuristic)') : ''}\n`,
     );

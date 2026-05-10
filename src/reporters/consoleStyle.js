@@ -115,7 +115,7 @@ export function getFixPrompt(finding) {
         : '';
     const recommendation = finding.recommendation ? `Existing recommendation: ${finding.recommendation}` : '';
 
-    return compactWhitespace(
+    return collapseWhitespace(
         [
             'You are a senior security engineer working in this repository.',
             `Fix the ItWorksBut finding ${finding.checkId} at ${location}.`,
@@ -140,7 +140,7 @@ export function formatSeverity(severity, options = {}) {
         return {
             ...meta,
             text: colors.bold(raw),
-            compactText: colors.bold(`${meta.symbol} ${meta.label}`),
+            shortText: colors.bold(`${meta.symbol} ${meta.label}`),
         };
     }
 
@@ -156,7 +156,7 @@ export function formatSeverity(severity, options = {}) {
     return {
         ...meta,
         text: style(raw),
-        compactText: style(`${meta.symbol} ${meta.label}`),
+        shortText: style(`${meta.symbol} ${meta.label}`),
     };
 }
 
@@ -228,7 +228,7 @@ export function renderSummaryTable(counts, options = {}) {
 
     for (const severity of SEVERITIES) {
         const formatted = formatSeverity(severity, options);
-        table.push([formatted.compactText, counts[severity]]);
+        table.push([formatted.shortText, counts[severity]]);
     }
 
     return table.toString();
@@ -255,6 +255,6 @@ function isSecretFinding(finding) {
     );
 }
 
-function compactWhitespace(value) {
+function collapseWhitespace(value) {
     return String(value).replace(/\s+/g, ' ').trim();
 }

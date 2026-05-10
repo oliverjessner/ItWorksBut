@@ -1,3 +1,5 @@
+import gradient from 'gradient-string';
+
 export function printUsage() {
   process.stdout.write(`ItWorksBut
 
@@ -14,11 +16,19 @@ Options:
   --sarif             Print SARIF for GitHub Code Scanning.
   --no-color          Disable color styling.
   --no-banner         Disable the intro banner.
-  --compact           Print one-line findings.
   --quiet             Print only the summary.
   --verbose           Include scanner warnings and extra metadata.
+  --version, -v       Print the ItWorksBut version.
   --help              Show this help.
 `);
+}
+
+export function printVersion(version) {
+  try {
+    process.stdout.write(`${gradient.rainbow(version)}\n`);
+  } catch {
+    process.stdout.write(`${version}\n`);
+  }
 }
 
 export function printRuntimeError(error) {

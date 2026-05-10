@@ -11,6 +11,7 @@ import { formatSeverity, getFixPrompt, getShipStatus } from "../src/reporters/co
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = path.join(repoRoot, "bin/itworksbut.js");
+const packageJson = JSON.parse(await fs.readFile(path.join(repoRoot, "package.json"), "utf8"));
 
 test("--json contains no banner and is valid JSON", async () => {
   const root = await fixture();
@@ -27,6 +28,14 @@ test("--json contains no banner and is valid JSON", async () => {
   assert.equal(output.includes("receipts"), false);
 });
 
+test("--version prints package version", () => {
+  const output = execFileSync(process.execPath, [cliPath, "--version"], {
+    encoding: "utf8"
+  });
+
+  assert.match(output.trim(), new RegExp(`\\b${escapeRegExp(packageJson.version)}\\b`));
+});
+
 test("--no-banner suppresses intro output", () => {
   const output = captureStdout(() => {
     withTty(true, () => {
@@ -35,18 +44,6 @@ test("--no-banner suppresses intro output", () => {
   });
 
   assert.equal(output, "");
-});
-
-test("--compact creates one-line finding output", () => {
-  const output = captureStdout(() => {
-    reportConsole(sampleResult(), {
-      compact: true,
-      noColor: true,
-      noBanner: true
-    });
-  });
-
-  assert.match(output, /CRITICAL env\.env-file-tracked \.env - It works, but your \.env is tracked\./);
 });
 
 test("console output renders medium findings and caution summary", () => {
@@ -221,4 +218,8 @@ function withTty(value, fn) {
       delete process.stdout.isTTY;
     }
   }
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
 }
