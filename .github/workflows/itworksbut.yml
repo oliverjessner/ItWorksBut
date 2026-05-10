@@ -17,4 +17,4 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - run: node ./bin/itworksbut.js scan --fail-on high
+      - run: node ./bin/itworksbut.js scan --config itworksbut.self.config.json --fail-on high

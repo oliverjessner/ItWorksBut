@@ -1,6 +1,8 @@
 # ItWorksBut
 
-ItWorksBut is a Node.js CI tool for static checks in JavaScript, Node.js, web, Tauri, and Electron projects. It focuses on common "it works, but..." risks often found in AI-generated or rushed prototypes: committed env files, missing lockfiles, weak CI, unsafe web APIs, broad desktop permissions, and similar issues.
+ItWorksBut is a Node.js CI tool for static checks in JavaScript, Node.js, web, Tauri, and Electron vibe coding projects.
+
+It focuses on common "it works, but..." risks often found in AI-generated or rushed prototypes: committed env files, missing lockfiles, weak CI, unsafe web APIs, broad desktop permissions, and similar issues.
 
 It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project.
 
@@ -21,6 +23,8 @@ node ./bin/itworksbut.js scan --config itworksbut.config.json
 node ./bin/itworksbut.js scan --path .
 node ./bin/itworksbut.js scan --verbose
 ```
+
+`scan` is intentionally the strict/default path: all checks are enabled, only heavy generated folders are skipped, and the default `fail-on` threshold is `low` so more issues fail early. Use `--config` only when you deliberately want to tune or suppress checks.
 
 ## Terminal Experience
 
@@ -86,7 +90,7 @@ Optional `itworksbut.config.json`:
 ```json
 {
     "ignore": ["dist/**", "build/**", "node_modules/**"],
-    "failOn": "high",
+    "failOn": "low",
     "checks": {
         "env.env-file-tracked": true,
         "dependencies.lockfile-missing": true,
@@ -96,6 +100,8 @@ Optional `itworksbut.config.json`:
 ```
 
 Checks are enabled by default. Set a check id to `false` to disable it.
+
+This repository also has `itworksbut.self.config.json` for its own CI run. It ignores intentional test fixtures and scanner regex files. Do not use that profile if you want the highest finding rate.
 
 Default ignored paths:
 

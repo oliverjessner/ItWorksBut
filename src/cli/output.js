@@ -9,7 +9,7 @@ Options:
   --path <path>       Project path to scan. Defaults to current directory.
   --config <path>     Optional itworksbut.config.json path.
   --fail-on <level>   Exit 1 when findings meet or exceed this severity.
-                     Levels: critical, high, medium, low, info. Default: high.
+                     Levels: critical, high, medium, low, info. Default: low.
   --json              Print machine-readable JSON.
   --sarif             Print SARIF for GitHub Code Scanning.
   --no-color          Disable color styling.

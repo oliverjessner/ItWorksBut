@@ -31,7 +31,7 @@ export async function loadConfig(rootPath, configPath, overrides = {}) {
     }
   }
 
-  const failOn = normalizeSeverity(overrides.failOn || userConfig.failOn || "high");
+  const failOn = normalizeSeverity(overrides.failOn || userConfig.failOn || "low");
 
   return {
     ignore: [...DEFAULT_IGNORE, ...(Array.isArray(userConfig.ignore) ? userConfig.ignore : [])],
@@ -42,7 +42,7 @@ export async function loadConfig(rootPath, configPath, overrides = {}) {
 }
 
 export function normalizeSeverity(value) {
-  if (!value) return "high";
+  if (!value) return "low";
   const normalized = String(value).toLowerCase();
   if (!SEVERITIES.includes(normalized)) {
     throw new Error(`Invalid severity "${value}". Expected one of: ${SEVERITIES.join(", ")}`);

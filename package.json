@@ -1,37 +1,37 @@
 {
-  "name": "itworksbut",
-  "version": "0.1.0",
-  "description": "Static CI checks for common security, repo, dependency, build, and deployment risks in JavaScript projects.",
-  "type": "module",
-  "bin": {
-    "itworksbut": "./bin/itworksbut.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "test": "node --test",
-    "build": "node --check ./bin/itworksbut.js",
-    "lint": "node --check ./bin/itworksbut.js",
-    "check": "npm test",
-    "audit": "npm audit",
+    "name": "itworksbut",
+    "version": "0.1.0",
+    "description": "Static CI checks for common security, repo, dependency, build, and deployment risks in JavaScript vibe coding projects.",
+    "type": "module",
+    "bin": {
+        "itworksbut": "./bin/itworksbut.js"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "test": "node --test",
+        "build": "node --check ./bin/itworksbut.js",
+        "lint": "node --check ./bin/itworksbut.js",
+        "check": "npm test",
+        "audit": "npm audit",
     "dev": "node ./bin/itworksbut.js scan --verbose"
-  },
-  "keywords": [
-    "security",
-    "ci",
-    "static-analysis",
-    "node",
-    "electron",
-    "tauri"
-  ],
-  "license": "MIT",
-  "dependencies": {
-    "boxen": "^8.0.1",
-    "chalk": "^5.6.2",
-    "cli-table3": "^0.6.5",
-    "figlet": "^1.11.0",
-    "gradient-string": "^3.0.0",
-    "ora": "^9.4.0"
-  }
+    },
+    "keywords": [
+        "security",
+        "ci",
+        "static-analysis",
+        "node",
+        "electron",
+        "tauri"
+    ],
+    "license": "MIT",
+    "dependencies": {
+        "boxen": "^8.0.1",
+        "chalk": "^5.6.2",
+        "cli-table3": "^0.6.5",
+        "figlet": "^1.11.0",
+        "gradient-string": "^3.0.0",
+        "ora": "^9.4.0"
+    }
 }
