@@ -4,17 +4,29 @@ ItWorksBut is a Node.js CI tool for static checks in JavaScript, Node.js, web, T
 
 It focuses on common "it works, but..." risks often found in AI-generated or rushed prototypes: committed env files, missing lockfiles, weak CI, unsafe web APIs, broad desktop permissions, and similar issues.
 
+For every finding, ItWorksBut gives you a copy-ready fix prompt you can paste into your coding agent. It does not just say what is wrong; it tells your AI exactly what to inspect, what to change, and what not to leak.
+
 It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project.
 
 ## Installation
 
+With npm:
+
 ```sh
+npm install --save-dev itworksbut
 npx itworksbut scan
+```
+
+Or install globally:
+
+```sh
+npm install --global itworksbut
+itworksbut scan
 ```
 
 ### Homebrew
 
-After the formula is committed to the tap, install with:
+With the Homebrew tap:
 
 ```sh
 brew tap oliverjessner/tap
@@ -22,76 +34,41 @@ brew install itworksbut
 itworksbut scan
 ```
 
-One-line install:
+## Quick Start
 
 ```sh
-brew install oliverjessner/tap/itworksbut
-```
-
-The `itworksbut` formula belongs in the Homebrew tap repo, not in this app repo:
-
-```text
-https://github.com/oliverjessner/homebrew-tap
-└── Formula/
-    └── itworksbut.rb
-```
-
-This repository contains a one-command release script. It runs checks, publishes the npm package, generates the Homebrew formula, commits it to the tap, and pushes the tap:
-
-```sh
-npm login
-npm run publish
-```
-
-Do not run `npm publish` directly. The package blocks direct npm publishing so the Homebrew tap cannot be forgotten.
-
-Preview everything without publishing:
-
-```sh
-npm run publish -- --dry-run
-```
-
-By default the script expects the tap checkout at `../homebrew-tap`. Override it when needed:
-
-```sh
-npm run publish -- --tap-path /path/to/homebrew-tap
-```
-
-Use `--no-push` when you want the script to commit the tap formula but leave the push to you.
-
-## Local Usage
-
-```sh
-node ./bin/itworksbut.js scan
-node ./bin/itworksbut.js scan --json
-node ./bin/itworksbut.js scan --sarif
-node ./bin/itworksbut.js scan --fail-on high
-node ./bin/itworksbut.js scan --config itworksbut.config.json
-node ./bin/itworksbut.js scan --path .
-node ./bin/itworksbut.js scan --verbose
+itworksbut scan
 ```
 
 `scan` is intentionally the strict/default path: all checks are enabled, only heavy generated folders are skipped, and the default `fail-on` threshold is `low` so more issues fail early. Use `--config` only when you deliberately want to tune or suppress checks.
 
-## Terminal Experience
-
-Normal console output is intentionally more opinionated than the machine-readable reporters:
+Common commands:
 
 ```sh
-node ./bin/itworksbut.js scan --theme toxic
+itworksbut scan --path .
+itworksbut scan --fail-on high
+itworksbut scan --json
+itworksbut scan --sarif > itworksbut.sarif
+itworksbut scan --config itworksbut.config.json
+itworksbut scan --verbose
 ```
 
-Console-only flags:
+## Options
 
-- `--no-color`
-- `--no-banner`
-- `--no-spinner`
-- `--compact`
-- `--quiet`
-- `--verbose`
-- `--theme default|toxic|mono`
+```text
+itworksbut scan [options]
+```
 
-In CI, spinners and banners are automatically disabled. With `--json` and `--sarif`, stdout contains only valid machine-readable output. The edgy tone applies only to the Console Reporter.
+- `--path <path>`: Scan a specific project directory. Defaults to the current directory.
+- `--config <path>`: Use a custom config file. Defaults to `itworksbut.config.json` when present.
+- `--fail-on <severity>`: Exit with code `1` when a finding at or above the severity exists. Levels: `critical`, `high`, `medium`, `low`, `info`. Default: `low`.
+- `--json`: Print machine-readable JSON only. No banner, colors, spinner, table, or extra text.
+- `--sarif`: Print SARIF JSON for GitHub Code Scanning. No banner, colors, spinner, table, or extra text.
+- `--verbose`: Include scanner warnings and extra metadata in console output.
+- `--compact`: Print one-line findings for tighter terminal output.
+- `--quiet`: Print only the summary.
+- `--no-color`: Disable colored output.
+- `--no-banner`: Disable the ASCII intro banner.
 
 Exit codes:
 
@@ -100,6 +77,24 @@ Exit codes:
 - `2`: tool/runtime error
 
 Severity levels are `critical`, `high`, `medium`, `low`, and `info`.
+
+## Terminal Experience
+
+Normal console output is intentionally more opinionated than the machine-readable reporters:
+
+```sh
+itworksbut scan
+```
+
+Console-only flags:
+
+- `--no-color`
+- `--no-banner`
+- `--compact`
+- `--quiet`
+- `--verbose`
+
+In CI, spinners and banners are automatically disabled. With `--json` and `--sarif`, stdout contains only valid machine-readable output. The edgy tone applies only to the Console Reporter.
 
 ## GitHub Actions
 
@@ -121,13 +116,13 @@ jobs:
                   node-version: 20
                   cache: npm
             - run: npm ci
-            - run: node ./bin/itworksbut.js scan --fail-on high
+            - run: npx itworksbut scan --fail-on high
 ```
 
 For GitHub Code Scanning-style output:
 
 ```sh
-node ./bin/itworksbut.js scan --sarif > itworksbut.sarif
+itworksbut scan --sarif > itworksbut.sarif
 ```
 
 ## Configuration
@@ -171,16 +166,16 @@ release/**
 
 ```text
 ✖  CRITICAL  It works, but your .env is tracked.
-   Check: env.env-file-tracked
-   File:  .env
-   Why:   .env appears to be tracked by git. Secrets may be exposed.
-   Fix:   Remove it from git index, rotate secrets, and commit .env.example.
+   ✔ Check: env.env-file-tracked
+   📁 File:  .env
+   🤔 Why:   .env appears to be tracked by git. Secrets may be exposed.
+   🤖 prompt:   You are a senior security engineer working in this repository. Fix the ItWorksBut finding env.env-file-tracked at .env. Treat this as a concrete finding. Problem: .env appears to be tracked by git. Secrets may be exposed. Required change: Remove tracked env files from git, add safe examples such as .env.example, and make sure any exposed credentials are treated as compromised. Do not print, log, or preserve raw secret values; use placeholders only. Keep existing behavior intact where possible, add or update focused tests when useful, and do not silence the check unless the underlying risk is actually fixed.
 
 ▲  HIGH  It works, but your SQL query is one template string away from pain.
-   Check: database.raw-sql-interpolation
-   File:  src/db.js:12
-   Why:   Possible SQL injection risk: raw SQL appears to be built with template string interpolation.
-   Fix:   Use parameterized queries, prepared statements, or ORM query builders instead of interpolating values into SQL strings.
+   ✔ Check: database.raw-sql-interpolation
+   📁 File:  src/db.js:12
+   🤔 Why:   Possible SQL injection risk: raw SQL appears to be built with template string interpolation.
+   🤖 prompt:   You are a senior security engineer working in this repository. Fix the ItWorksBut finding database.raw-sql-interpolation at src/db.js:12. This finding is heuristic, so inspect the code first and only change behavior when the risk is real. Problem: Possible SQL injection risk: raw SQL appears to be built with template string interpolation. Required change: Replace SQL string interpolation or concatenation with parameterized queries, prepared statements, or a safe ORM query builder. Keep existing behavior intact where possible, add or update focused tests when useful, and do not silence the check unless the underlying risk is actually fixed.
 
 SUMMARY
 - ship status: DO NOT SHIP

@@ -2,7 +2,7 @@
 
 import { parseArgs } from "../src/cli/parseArgs.js";
 import { printUsage, printRuntimeError } from "../src/cli/output.js";
-import { createScanSpinner, normalizeTheme, printIntro } from "../src/cli/terminal.js";
+import { createScanSpinner, printIntro } from "../src/cli/terminal.js";
 import { scanProject } from "../src/core/scanner.js";
 import { getExitCode } from "../src/core/findings.js";
 import { reportConsole } from "../src/reporters/consoleReporter.js";
@@ -11,7 +11,6 @@ import { reportSarif } from "../src/reporters/sarifReporter.js";
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  args.theme = normalizeTheme(args.theme);
 
   if (args.help) {
     printUsage();

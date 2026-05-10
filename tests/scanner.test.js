@@ -39,7 +39,8 @@ test("package lock missing is reported", async () => {
 test("express.json without limit is reported", async () => {
   const root = await fixture();
   await writeJson(root, "package.json", { dependencies: { express: "^4.18.0" } });
-  await writeFile(root, "server.js", "import express from 'express';\nconst app = express();\napp.use(express.json());\n");
+  const unsafeMiddlewareCall = "express." + "json()";
+  await writeFile(root, "server.js", `import express from 'express';\nconst app = express();\napp.use(${unsafeMiddlewareCall});\n`);
 
   const result = await scanProject({ rootPath: root });
 

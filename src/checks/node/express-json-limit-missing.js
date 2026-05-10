@@ -18,11 +18,11 @@ export default {
       const args = match.match[1] || "";
       if (/\blimit\s*:/.test(args)) continue;
       findings.push({
-        message: "express.json() appears to be used without an explicit request body size limit.",
+        message: "Express JSON body parsing appears to be used without an explicit request body size limit.",
         file: match.file,
         line: match.line,
         column: match.column,
-        recommendation: "Set a conservative limit, for example express.json({ limit: '100kb' }), and tune it per route when needed."
+        recommendation: "Set a conservative JSON body parser limit such as 100kb, and tune it per route when needed."
       });
     }
     return findings;

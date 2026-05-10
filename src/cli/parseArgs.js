@@ -1,5 +1,5 @@
-const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path", "--theme"]);
-const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--verbose", "--help", "-h", "--no-color", "--no-banner", "--no-spinner", "--compact", "--quiet"]);
+const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path"]);
+const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--verbose", "--help", "-h", "--no-color", "--no-banner", "--compact", "--quiet"]);
 
 export function parseArgs(argv) {
   const args = {
@@ -12,10 +12,8 @@ export function parseArgs(argv) {
     verbose: false,
     noColor: false,
     noBanner: false,
-    noSpinner: false,
     compact: false,
     quiet: false,
-    theme: "default",
     help: false
   };
 
@@ -50,7 +48,6 @@ export function parseArgs(argv) {
       if (token === "--verbose") args.verbose = true;
       if (token === "--no-color") args.noColor = true;
       if (token === "--no-banner") args.noBanner = true;
-      if (token === "--no-spinner") args.noSpinner = true;
       if (token === "--compact") args.compact = true;
       if (token === "--quiet") args.quiet = true;
       continue;
@@ -70,6 +67,5 @@ function assignValue(args, flag, value) {
   if (flag === "--fail-on") args.failOn = value;
   else if (flag === "--config") args.config = value;
   else if (flag === "--path") args.path = value;
-  else if (flag === "--theme") args.theme = value;
   else throw new Error(`Unknown argument: ${flag}`);
 }

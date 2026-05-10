@@ -4,8 +4,6 @@ import figlet from "figlet";
 import gradient from "gradient-string";
 import ora from "ora";
 
-const THEMES = new Set(["default", "toxic", "mono"]);
-
 const SPINNER_TEXT = {
   git: "Checking git hygiene",
   env: "Sniffing for secrets",
@@ -20,21 +18,12 @@ const SPINNER_TEXT = {
   default: "Looking for things that work but should not ship"
 };
 
-export function normalizeTheme(theme) {
-  const normalized = String(theme || "default").toLowerCase();
-  if (!THEMES.has(normalized)) {
-    throw new Error(`Invalid theme "${theme}". Expected one of: default, toxic, mono`);
-  }
-  return normalized;
-}
-
 export function isFancyOutputEnabled(options = {}, env = process.env, stdout = process.stdout) {
-  return Boolean(stdout.isTTY) && !env.CI && !options.json && !options.sarif && !options.noColor && normalizeTheme(options.theme) !== "mono";
+  return Boolean(stdout.isTTY) && !env.CI && !options.json && !options.sarif && !options.noColor;
 }
 
 export function isColorEnabled(options = {}, env = process.env, stdout = process.stdout) {
   if (options.noColor || options.json || options.sarif) return false;
-  if (normalizeTheme(options.theme) === "mono") return false;
   if (env.FORCE_COLOR && env.FORCE_COLOR !== "0") return true;
   if (env.CI) return false;
   return Boolean(stdout.isTTY);
@@ -51,7 +40,6 @@ export function shouldUseSpinner(options = {}, env = process.env, stdout = proce
     !env.CI &&
     !options.json &&
     !options.sarif &&
-    !options.noSpinner &&
     !options.quiet
   );
 }
@@ -61,7 +49,7 @@ export function createScanSpinner(options = {}) {
   return ora({
     text: SPINNER_TEXT.default,
     stream: process.stderr,
-    color: normalizeTheme(options.theme) === "toxic" ? "green" : "cyan"
+    color: "cyan"
   });
 }
 
@@ -70,14 +58,9 @@ export function printIntro(options = {}) {
     return;
   }
 
-  const theme = normalizeTheme(options.theme);
   const colors = getChalk(options);
-  const renderTheme = options.noColor ? "mono" : theme;
-  const title = renderTitle(renderTheme);
-  const claim =
-    theme === "toxic"
-      ? `${colors.bold("Green builds. Red flags.")}\n${colors.green("Let's see what breaks before production.")}`
-      : `${colors.bold("AI-built? Nice.")}\n${colors.yellow("Now let's see what breaks before production.")}`;
+  const title = renderTitle(options.noColor);
+  const claim = `${colors.bold("AI-built? Nice.")}\n${colors.yellow("Now let's see what breaks before production.")}`;
 
   process.stdout.write(`${title}\n`);
   process.stdout.write(
@@ -85,12 +68,12 @@ export function printIntro(options = {}) {
       padding: 1,
       margin: 1,
       borderStyle: "round",
-      borderColor: renderTheme === "mono" ? undefined : renderTheme === "toxic" ? "green" : "cyan"
+      borderColor: options.noColor ? undefined : "cyan"
     })}\n`
   );
 }
 
-function renderTitle(theme) {
+function renderTitle(noColor) {
   let title = "ItWorksBut";
   try {
     title = figlet.textSync("ItWorksBut", {
@@ -103,8 +86,7 @@ function renderTitle(theme) {
   }
 
   try {
-    if (theme === "mono") return title;
-    if (theme === "toxic") return gradient(["#faff00", "#39ff14", "#00f5ff"])(title);
+    if (noColor) return title;
     return gradient.rainbow(title);
   } catch {
     return title;

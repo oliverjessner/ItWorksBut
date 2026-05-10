@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { printIntro, isFancyOutputEnabled, shouldUseSpinner } from "../src/cli/terminal.js";
 import { reportConsole } from "../src/reporters/consoleReporter.js";
-import { formatSeverity, getShipStatus } from "../src/reporters/consoleStyle.js";
+import { formatSeverity, getFixPrompt, getShipStatus } from "../src/reporters/consoleStyle.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const cliPath = path.join(repoRoot, "bin/itworksbut.js");
@@ -30,7 +30,7 @@ test("--json contains no banner and is valid JSON", async () => {
 test("--no-banner suppresses intro output", () => {
   const output = captureStdout(() => {
     withTty(true, () => {
-      printIntro({ noBanner: true, theme: "default" });
+      printIntro({ noBanner: true });
     });
   });
 
@@ -42,21 +42,101 @@ test("--compact creates one-line finding output", () => {
     reportConsole(sampleResult(), {
       compact: true,
       noColor: true,
-      noBanner: true,
-      noSpinner: true,
-      theme: "mono"
+      noBanner: true
     });
   });
 
   assert.match(output, /CRITICAL env\.env-file-tracked \.env - It works, but your \.env is tracked\./);
 });
 
+test("console output renders medium findings and caution summary", () => {
+  const output = captureStdout(() => {
+    reportConsole(resultWithFindings([
+      {
+        checkId: "dependencies.lockfile-missing",
+        severity: "medium",
+        title: "Package lockfile should be committed",
+        category: "dependencies",
+        message: "package.json exists, but no package lockfile was found.",
+        file: "package.json",
+        recommendation: "Commit exactly one lockfile.",
+        tags: ["dependencies"]
+      }
+    ]), {
+      noColor: true,
+      noBanner: true
+    });
+  });
+
+  assert.match(output, /MEDIUM\s+It works on your machine, but your dependency tree is not locked\./);
+  assert.match(output, /ship status: SHIP WITH CAUTION/);
+  assert.match(output, /- medium: 1/);
+});
+
+test("console output renders low findings without blocking ship status", () => {
+  const output = captureStdout(() => {
+    reportConsole(resultWithFindings([
+      {
+        checkId: "dependencies.audit-script-missing",
+        severity: "low",
+        title: "Dependency security audit should be available",
+        category: "dependencies",
+        message: "package.json does not appear to define an audit or security script.",
+        file: "package.json",
+        recommendation: "Add an npm audit or equivalent security script.",
+        tags: ["dependencies"]
+      }
+    ]), {
+      noColor: true,
+      noBanner: true
+    });
+  });
+
+  assert.match(output, /LOW\s+It works, but dependency security audit should be available\./);
+  assert.match(output, /ship status: SHIP IT, BUT STAY PARANOID/);
+  assert.match(output, /- low: 1/);
+});
+
+test("console fix output is an actionable prompt", () => {
+  const output = captureStdout(() => {
+    reportConsole(sampleResult(), {
+      noColor: true,
+      noBanner: true
+    });
+  });
+
+  assert.match(output, /Prompt:\s+You are a senior security engineer working in this repository\./);
+  assert.match(output, /Fix the ItWorksBut finding env\.env-file-tracked at \.env\./);
+  assert.match(output, /Do not print, log, or preserve raw secret values/);
+});
+
+test("fix prompt redacts secret values by construction", () => {
+  const prompt = getFixPrompt({
+    checkId: "env.possible-secret-in-code",
+    severity: "critical",
+    category: "env",
+    message: "A possible OPENAI_API_KEY value appears to be hardcoded. The value was not printed.",
+    file: "src/app.js",
+    line: 12,
+    recommendation: "Move the secret to a secure runtime secret store.",
+    tags: ["secrets"],
+    metadata: {
+      secretType: "OPENAI_API_KEY",
+      valueRedacted: true
+    }
+  });
+
+  assert.match(prompt, /Fix the ItWorksBut finding env\.possible-secret-in-code at src\/app\.js:12/);
+  assert.match(prompt, /Do not print, log, or preserve raw secret values/);
+  assert.doesNotMatch(prompt, /sk-[A-Za-z0-9]/);
+});
+
 test("severity formatter exposes expected labels", () => {
-  assert.equal(formatSeverity("critical", { noColor: true, theme: "mono" }).label, "CRITICAL");
-  assert.equal(formatSeverity("high", { noColor: true, theme: "mono" }).label, "HIGH");
-  assert.equal(formatSeverity("medium", { noColor: true, theme: "mono" }).label, "MEDIUM");
-  assert.equal(formatSeverity("low", { noColor: true, theme: "mono" }).label, "LOW");
-  assert.equal(formatSeverity("info", { noColor: true, theme: "mono" }).label, "INFO");
+  assert.equal(formatSeverity("critical", { noColor: true }).label, "CRITICAL");
+  assert.equal(formatSeverity("high", { noColor: true }).label, "HIGH");
+  assert.equal(formatSeverity("medium", { noColor: true }).label, "MEDIUM");
+  assert.equal(formatSeverity("low", { noColor: true }).label, "LOW");
+  assert.equal(formatSeverity("info", { noColor: true }).label, "INFO");
 });
 
 test("summary ship status follows highest finding severity", () => {
@@ -70,8 +150,8 @@ test("CI disables fancy output and spinner", () => {
   const fakeStdout = { isTTY: true };
   const env = { CI: "true" };
 
-  assert.equal(isFancyOutputEnabled({ theme: "default" }, env, fakeStdout), false);
-  assert.equal(shouldUseSpinner({ theme: "default" }, env, fakeStdout), false);
+  assert.equal(isFancyOutputEnabled({}, env, fakeStdout), false);
+  assert.equal(shouldUseSpinner({}, env, fakeStdout), false);
 });
 
 async function fixture() {
@@ -79,8 +159,7 @@ async function fixture() {
 }
 
 function sampleResult() {
-  return {
-    findings: [
+  return resultWithFindings([
       {
         checkId: "env.env-file-tracked",
         severity: "critical",
@@ -91,7 +170,12 @@ function sampleResult() {
         recommendation: "Remove it from git index, rotate secrets, and commit .env.example.",
         tags: ["secrets"]
       }
-    ],
+    ]);
+}
+
+function resultWithFindings(findings) {
+  return {
+    findings,
     warnings: [],
     config: { failOn: "high" },
     meta: {

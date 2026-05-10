@@ -14,10 +14,8 @@ Options:
   --sarif             Print SARIF for GitHub Code Scanning.
   --no-color          Disable color styling.
   --no-banner         Disable the intro banner.
-  --no-spinner        Disable scan spinner.
   --compact           Print one-line findings.
   --quiet             Print only the summary.
-  --theme <theme>     Console theme: default, toxic, mono.
   --verbose           Include scanner warnings and extra metadata.
   --help              Show this help.
 `);
