@@ -9,6 +9,7 @@ import { getExitCode } from '../src/core/findings.js';
 import { reportConsole } from '../src/reporters/consoleReporter.js';
 import { reportJson } from '../src/reporters/jsonReporter.js';
 import { reportSarif } from '../src/reporters/sarifReporter.js';
+import { writeTodoReport } from '../src/reporters/todoReporter.js';
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
@@ -51,6 +52,9 @@ async function main() {
         process.stdout.write(`${JSON.stringify(reportSarif(result), null, 2)}\n`);
     } else if (args.json) {
         process.stdout.write(`${JSON.stringify(reportJson(result), null, 2)}\n`);
+    } else if (args.todo) {
+        const filePath = await writeTodoReport(result);
+        if (!args.quiet) process.stdout.write(`Wrote AI todo file: ${filePath}\n`);
     } else {
         reportConsole(result, args);
     }

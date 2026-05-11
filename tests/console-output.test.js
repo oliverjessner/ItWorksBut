@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { printIntro, isFancyOutputEnabled, shouldUseSpinner } from '../src/cli/terminal.js';
 import { reportConsole } from '../src/reporters/consoleReporter.js';
 import { formatSeverity, getFixPrompt, getShipStatus } from '../src/reporters/consoleStyle.js';
+import { reportTodo } from '../src/reporters/todoReporter.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cliPath = path.join(repoRoot, 'bin/itworksbut.js');
@@ -30,6 +31,29 @@ test('--json contains no banner and is valid JSON', async () => {
     assert.equal(output.includes('AI-built? Nice.'), false);
     assert.equal(output.includes('It works, but'), false);
     assert.equal(output.includes('receipts'), false);
+});
+
+test('--todo writes an AI-ready todo.md without banner output', async () => {
+    const root = await fixture();
+    await fs.writeFile(path.join(root, 'package.json'), `${JSON.stringify({ scripts: {} }, null, 2)}\n`);
+
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'scan', '--path', root, '--todo', '--fail-on', 'critical'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+    const todo = await fs.readFile(path.join(root, 'todo.md'), 'utf8');
+
+    assert.match(output, /Wrote AI todo file:/);
+    assert.equal(output.includes('AI-built? Nice.'), false);
+    assert.match(todo, /^# AI Fix Todo/m);
+    assert.match(todo, /## Agent Rules/);
+    assert.match(todo, /#### Agent Prompt/);
+    assert.match(todo, /Fix the ItWorksBut finding/);
+    assert.match(todo, /## Final Verification/);
 });
 
 test('--version prints package version', () => {
@@ -121,6 +145,17 @@ test('console fix output is an actionable prompt', () => {
     assert.match(output, /Do not print, log, or preserve raw secret values/);
 });
 
+test('todo reporter renders prioritized AI tasks', () => {
+    const output = reportTodo(sampleResult());
+
+    assert.match(output, /^# AI Fix Todo/m);
+    assert.match(output, /## Agent Rules/);
+    assert.match(output, /## Critical Findings/);
+    assert.match(output, /- Check ID: `env\.env-file-tracked`/);
+    assert.match(output, /```text\nYou are a senior security engineer/);
+    assert.match(output, /## Final Verification/);
+});
+
 test('fix prompt redacts secret values by construction', () => {
     const prompt = getFixPrompt({
         checkId: 'env.possible-secret-in-code',
@@ -193,9 +228,13 @@ function resultWithFindings(findings) {
         warnings: [],
         config: { failOn: 'high' },
         meta: {
+            tool: 'ItWorksBut',
+            version: packageJson.version,
+            rootPath: repoRoot,
             filesScanned: 1,
             textFilesScanned: 1,
             gitAvailable: false,
+            completedAt: '2026-05-11T00:00:00.000Z',
         },
     };
 }

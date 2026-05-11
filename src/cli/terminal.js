@@ -19,11 +19,11 @@ const SPINNER_TEXT = {
 };
 
 export function isFancyOutputEnabled(options = {}, env = process.env, stdout = process.stdout) {
-  return Boolean(stdout.isTTY) && !env.CI && !options.json && !options.sarif && !options.noColor;
+  return Boolean(stdout.isTTY) && !env.CI && !options.json && !options.sarif && !options.todo && !options.noColor;
 }
 
 export function isColorEnabled(options = {}, env = process.env, stdout = process.stdout) {
-  if (options.noColor || options.json || options.sarif) return false;
+  if (options.noColor || options.json || options.sarif || options.todo) return false;
   if (env.FORCE_COLOR && env.FORCE_COLOR !== "0") return true;
   if (env.CI) return false;
   return Boolean(stdout.isTTY);
@@ -40,6 +40,7 @@ export function shouldUseSpinner(options = {}, env = process.env, stdout = proce
     !env.CI &&
     !options.json &&
     !options.sarif &&
+    !options.todo &&
     !options.quiet
   );
 }
@@ -54,7 +55,7 @@ export function createScanSpinner(options = {}) {
 }
 
 export function printIntro(options = {}) {
-  if (options.json || options.sarif || options.noBanner || options.quiet || process.env.CI || !process.stdout.isTTY) {
+  if (options.json || options.sarif || options.todo || options.noBanner || options.quiet || process.env.CI || !process.stdout.isTTY) {
     return;
   }
 

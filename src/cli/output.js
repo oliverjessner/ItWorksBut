@@ -14,6 +14,7 @@ Options:
                      Levels: critical, high, medium, low, info. Default: low.
   --json              Print machine-readable JSON.
   --sarif             Print SARIF for GitHub Code Scanning.
+  --todo              Write an AI-ready todo.md to the scanned project.
   --no-color          Disable color styling.
   --no-banner         Disable the intro banner.
   --quiet             Print only the summary.

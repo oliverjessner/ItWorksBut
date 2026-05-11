@@ -1,5 +1,5 @@
 const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path"]);
-const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
+const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--todo", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
 
 export function parseArgs(argv) {
   const args = {
@@ -9,6 +9,7 @@ export function parseArgs(argv) {
     failOn: undefined,
     json: false,
     sarif: false,
+    todo: false,
     verbose: false,
     noColor: false,
     noBanner: false,
@@ -46,6 +47,7 @@ export function parseArgs(argv) {
       if (token === "--version" || token === "-v") args.version = true;
       if (token === "--json") args.json = true;
       if (token === "--sarif") args.sarif = true;
+      if (token === "--todo") args.todo = true;
       if (token === "--verbose") args.verbose = true;
       if (token === "--no-color") args.noColor = true;
       if (token === "--no-banner") args.noBanner = true;
@@ -56,8 +58,8 @@ export function parseArgs(argv) {
     throw new Error(`Unknown argument: ${token}`);
   }
 
-  if (args.json && args.sarif) {
-    throw new Error("Use only one output format: --json or --sarif");
+  if ([args.json, args.sarif, args.todo].filter(Boolean).length > 1) {
+    throw new Error("Use only one output format: --json, --sarif, or --todo");
   }
 
   return args;

@@ -6,7 +6,7 @@ It focuses on common "it works, but..." risks often found in AI-generated or rus
 
 For every finding, ItWorksBut gives you a copy-ready fix prompt you can paste into your coding agent. It does not just say what is wrong; it tells your AI exactly what to inspect, what to change, and what not to leak.
 
-It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project.
+It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project unless you explicitly ask it to write `todo.md` with `--todo`.
 
 ## Installation
 
@@ -40,6 +40,7 @@ itworksbut scan --path .
 itworksbut scan --fail-on high
 itworksbut scan --json
 itworksbut scan --sarif > itworksbut.sarif
+itworksbut scan --todo
 itworksbut scan --config itworksbut.config.json
 itworksbut scan --verbose
 itworksbut --version
@@ -56,6 +57,7 @@ itworksbut scan [options]
 - `--fail-on <severity>`: Exit with code `1` when a finding at or above the severity exists. Levels: `critical`, `high`, `medium`, `low`, `info`. Default: `low`.
 - `--json`: Print machine-readable JSON only. No banner, colors, spinner, table, or extra text.
 - `--sarif`: Print SARIF JSON for GitHub Code Scanning. No banner, colors, spinner, table, or extra text.
+- `--todo`: Write an AI-ready `todo.md` into the scanned project with prioritized findings, fix prompts, and acceptance criteria.
 - `--verbose`: Include scanner warnings and extra metadata in console output.
 - `--quiet`: Print only the summary.
 - `--no-color`: Disable colored output.
@@ -86,6 +88,14 @@ Console-only flags:
 - `--verbose`
 
 In CI, spinners and banners are automatically disabled. With `--json` and `--sarif`, stdout contains only valid machine-readable output. The edgy tone applies only to the Console Reporter.
+
+To create a fix list for a coding agent:
+
+```sh
+itworksbut scan --todo
+```
+
+This writes `todo.md` to the scanned project. The file is ordered by severity and includes agent rules, exact fix prompts, locations, recommendations, and final verification checkboxes.
 
 ## GitHub Actions
 
