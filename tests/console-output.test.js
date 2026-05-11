@@ -33,6 +33,25 @@ test('--json contains no banner and is valid JSON', async () => {
     assert.equal(output.includes('receipts'), false);
 });
 
+test('--sarif contains no banner and is valid SARIF JSON', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'scan', '--path', root, '--sarif', '--fail-on', 'critical'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    const parsed = JSON.parse(output);
+
+    assert.equal(parsed.version, '2.1.0');
+    assert.equal(Array.isArray(parsed.runs), true);
+    assert.equal(output.includes('AI-built? Nice.'), false);
+    assert.equal(output.includes('receipts'), false);
+});
+
 test('--todo writes an AI-ready todo.md without banner output', async () => {
     const root = await fixture();
     await fs.writeFile(path.join(root, 'package.json'), `${JSON.stringify({ scripts: {} }, null, 2)}\n`);

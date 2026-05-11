@@ -197,7 +197,7 @@ Secret-like findings never print the full secret value. Findings report the file
 
 ## What It Detects
 
-The baseline includes 30 modular checks:
+The baseline includes 40 modular checks:
 
 - `git.gitignore-missing`
 - `git.gitignore-incomplete`
@@ -206,6 +206,7 @@ The baseline includes 30 modular checks:
 - `env.env-example-missing`
 - `env.possible-secret-in-code`
 - `env.frontend-secret-exposure`
+- `secrets.secrets-in-logs`
 - `dependencies.lockfile-missing`
 - `dependencies.multiple-lockfiles`
 - `dependencies.install-scripts-risk`
@@ -219,13 +220,22 @@ The baseline includes 30 modular checks:
 - `node.rate-limit-missing`
 - `node.helmet-missing`
 - `node.cors-wildcard`
+- `node.child-process-user-input`
 - `web.client-side-auth-only`
 - `web.dangerous-inner-html`
 - `web.missing-output-sanitization`
 - `api.missing-auth-on-routes`
 - `api.idor-risk`
+- `auth.jwt-secret-weak-or-fallback`
+- `auth.password-hashing-missing`
 - `database.raw-sql-interpolation`
 - `database.no-migrations`
+- `cookies.insecure-session-cookie`
+- `uploads.public-executable-upload`
+- `webhooks.missing-raw-body`
+- `llm.prompt-injection-risk`
+- `frontend.sourcemaps-production`
+- `config.debug-production`
 - `electron.node-integration-enabled`
 - `electron.context-isolation-disabled`
 - `tauri.dangerous-allowlist-or-capabilities`

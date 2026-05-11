@@ -7,6 +7,7 @@ const EDGY_TITLES = {
     'env.env-file-tracked': 'It works, but your .env is tracked.',
     'env.possible-secret-in-code': 'It works, but your repo may be leaking secrets.',
     'env.frontend-secret-exposure': 'It works, but your frontend env variable smells like a backend secret.',
+    'secrets.secrets-in-logs': 'It works, but your logs may be leaking secrets.',
     'git.gitignore-missing': 'It works, but your repo forgot what not to commit.',
     'git.gitignore-incomplete': 'It works, but your .gitignore has holes.',
     'git.ignored-files-tracked': 'It works, but Git is already tracking files you meant to ignore.',
@@ -19,11 +20,20 @@ const EDGY_TITLES = {
     'node.rate-limit-missing': 'It works, but your endpoints have no brakes.',
     'node.helmet-missing': 'It works, but your HTTP headers are underdressed.',
     'node.cors-wildcard': 'It works, but CORS is holding the door open.',
+    'node.child-process-user-input': 'It works, but your shell command trusts the internet.',
     'web.dangerous-inner-html': 'It works, but your frontend is injecting HTML with sharp edges.',
     'api.missing-auth-on-routes': 'It works, but this API route appears to trust strangers.',
     'api.idor-risk': 'It works, but this ID lookup may belong to someone else.',
+    'auth.jwt-secret-weak-or-fallback': 'It works, but your JWT secret has a fallback key.',
+    'auth.password-hashing-missing': 'It works, but your passwords may be stored too honestly.',
     'database.raw-sql-interpolation': 'It works, but your SQL query is one template string away from pain.',
     'database.no-migrations': 'It works, but your database schema has no paper trail.',
+    'cookies.insecure-session-cookie': 'It works, but your session cookie is dressed for localhost.',
+    'uploads.public-executable-upload': 'It works, but your uploads are sitting in the front window.',
+    'webhooks.missing-raw-body': 'It works, but your webhook signature check may be checking the wrong body.',
+    'llm.prompt-injection-risk': 'It works, but your AI output has admin energy.',
+    'frontend.sourcemaps-production': 'It works, but your source code may be shipping with the app.',
+    'config.debug-production': 'It works, but production still thinks it is a dev server.',
     'electron.node-integration-enabled': 'It works, but Electron is holding the Node.js door open.',
     'electron.context-isolation-disabled': 'It works, but your renderer and backend are sharing a room.',
     'tauri.dangerous-allowlist-or-capabilities': 'It works, but your Tauri permissions look too generous.',
@@ -44,6 +54,8 @@ const FIX_PROMPT_ACTIONS = {
         'Move hardcoded secret material into a runtime secret store or CI secret, replace committed values with placeholders, and avoid printing secret values anywhere.',
     'env.frontend-secret-exposure':
         'Move secret-like frontend environment variables to server-side code and keep only intentionally public values behind public prefixes.',
+    'secrets.secrets-in-logs':
+        'Remove sensitive logging, mask secrets, and log only explicit non-sensitive fields.',
     'git.gitignore-missing':
         'Add a project-appropriate .gitignore for dependencies, local env files, build output, logs, databases, OS files, and coverage artifacts.',
     'git.gitignore-incomplete':
@@ -73,6 +85,8 @@ const FIX_PROMPT_ACTIONS = {
         'Install and apply Helmet or equivalent security headers early in the Express middleware stack.',
     'node.cors-wildcard':
         'Restrict CORS origins to trusted application origins and avoid wildcard or credentials-unsafe configurations.',
+    'node.child-process-user-input':
+        'Avoid shell execution with user input. Use spawn with fixed command and argument arrays, validate against allowlists, and never concatenate shell strings.',
     'web.client-side-auth-only':
         'Move authorization enforcement to server-side API or route handlers and keep frontend checks as UI-only hints.',
     'web.dangerous-inner-html':
@@ -82,9 +96,25 @@ const FIX_PROMPT_ACTIONS = {
         'Add explicit authentication and authorization to the route, or document why the route is intentionally public.',
     'api.idor-risk':
         'Scope object access by authenticated user, owner, tenant, account, or organization in addition to object id.',
+    'auth.jwt-secret-weak-or-fallback':
+        'Require a strong JWT secret from the environment in production and fail startup if it is missing.',
+    'auth.password-hashing-missing':
+        'Hash passwords with argon2, bcrypt, scrypt or PBKDF2 before storage. Never store raw passwords.',
     'database.raw-sql-interpolation':
         'Replace SQL string interpolation or concatenation with parameterized queries, prepared statements, or a safe ORM query builder.',
     'database.no-migrations': 'Add versioned database migrations that match the detected ORM or database stack.',
+    'cookies.insecure-session-cookie':
+        'Set httpOnly, secure and sameSite for session cookies. Use secure: true in production.',
+    'uploads.public-executable-upload':
+        'Store uploads outside the public web root, validate MIME type and extension, enforce file size limits, and serve files through controlled routes.',
+    'webhooks.missing-raw-body':
+        'Use a raw body parser for signed webhook routes and register it before JSON parsing middleware.',
+    'llm.prompt-injection-risk':
+        'Treat model output as untrusted input. Validate with schemas, use allowlists, require human approval for dangerous actions, and never execute raw model output.',
+    'frontend.sourcemaps-production':
+        'Disable public production source maps unless intentionally needed. If needed, upload them privately to error tracking instead of serving them publicly.',
+    'config.debug-production':
+        'Disable verbose errors and debug flags in production. Avoid exposing stack traces, internal paths or development tooling.',
     'electron.node-integration-enabled':
         'Set nodeIntegration to false and expose only narrowly scoped APIs through preload.',
     'electron.context-isolation-disabled':
