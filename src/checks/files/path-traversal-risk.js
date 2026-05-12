@@ -1,9 +1,10 @@
-import { isCodeLikeFile, isEnvExampleFile, isLockfile, lineFromOffset, readNearby } from "../helpers.js";
+import { isCodeLikeFile, isEnvExampleFile, isLockfile, isServerOrApiFile, lineFromOffset, readNearby } from "../helpers.js";
 
 const FILE_PATH_SINK_RE =
   /\b(?:fs\.(?:readFile|readFileSync|writeFile|writeFileSync|createReadStream|createWriteStream)|res\.sendFile|reply\.sendFile|path\.(?:join|resolve)|Bun\.file|Deno\.readTextFile)\s*\(/g;
-const USER_PATH_SOURCE_RE =
-  /\breq\.(?:query|params|body)\.(?:file|path|filename|filepath|filePath)\b|\brequest\.query\b|\bsearchParams\.get\s*\(\s*["'`](?:file|path)["'`]\s*\)|\bformData\.get\s*\(\s*["'`](?:file|path)["'`]\s*\)|\b(?:userInput|filename|filepath|filePath|pathParam)\b/i;
+const REQUEST_PATH_SOURCE_RE =
+  /\breq\.(?:query|params|body)\.(?:file|path|filename|filepath|filePath)\b|\brequest\.query\b|\bsearchParams\.get\s*\(\s*["'`](?:file|path)["'`]\s*\)|\bformData\.get\s*\(\s*["'`](?:file|path)["'`]\s*\)/i;
+const GENERIC_PATH_SOURCE_RE = /\b(?:userInput|filename|filepath|filePath|pathParam)\b/i;
 const PATH_MITIGATION_RE =
   /\b(?:path\.basename|allowlist|allowedPaths|sanitizeFilename|safeJoin|validatePath|rejectPathSeparators)\b|(?:\bnormalize\b[\s\S]{0,160}\bstartsWith\s*\()|(?:\bstartsWith\s*\([\s\S]{0,160}\bbaseDir\b)|(?:\.\.["'`][\s\S]{0,120}(?:includes|reject|throw|return))/i;
 
@@ -26,7 +27,7 @@ export default {
       while ((match = FILE_PATH_SINK_RE.exec(content)) !== null) {
         const line = lineFromOffset(content, match.index);
         const nearby = await readNearby(context, file, line, 8);
-        if (!USER_PATH_SOURCE_RE.test(nearby)) continue;
+        if (!hasRiskyPathSource(file, nearby)) continue;
         if (PATH_MITIGATION_RE.test(nearby)) continue;
 
         findings.push({
@@ -44,3 +45,18 @@ export default {
     return findings.slice(0, 100);
   }
 };
+
+function hasRiskyPathSource(file, nearby) {
+  if (REQUEST_PATH_SOURCE_RE.test(nearby)) return true;
+  if (!GENERIC_PATH_SOURCE_RE.test(nearby)) return false;
+  return (
+    isServerOrApiFile(file) ||
+    file.startsWith("server/") ||
+    file.startsWith("routes/") ||
+    file.startsWith("api/") ||
+    file.includes("/server/") ||
+    file.includes("/routes/") ||
+    file.includes("/controllers/") ||
+    file.includes("/handlers/")
+  );
+}
