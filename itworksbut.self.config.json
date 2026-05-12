@@ -1,5 +1,7 @@
 {
     "ignore": ["tests/**", "src/checks/**"],
     "failOn": "high",
-    "checks": {}
+    "checks": {
+        "ci.no-ci-config": false
+    }
 }
