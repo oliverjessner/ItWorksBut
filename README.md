@@ -8,6 +8,18 @@ For every finding, ItWorksBut gives you a copy-ready fix prompt you can paste in
 
 It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project unless you explicitly ask it to write `todo.md` with `--todo`.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Options](#options)
+- [Terminal Experience](#terminal-experience)
+- [GitHub Actions](#github-actions)
+- [Configuration](#configuration)
+- [Example Output](#example-output)
+- [What It Detects](#what-it-detects)
+- [What It Does Not Guarantee](#what-it-does-not-guarantee)
+
 ## Installation
 
 ```sh
@@ -166,34 +178,6 @@ release/**
 ## Example Output
 
 ![screenshot of an example output](/assets/medium_problems.webp)
-✖ CRITICAL It works, but your .env is tracked.
-✔ Check: env.env-file-tracked
-📁 File: .env
-🤔 Why: .env appears to be tracked by git. Secrets may be exposed.
-🤖 prompt: You are a senior security engineer working in this repository. Fix the ItWorksBut finding env.env-file-tracked at .env. Treat this as a concrete finding. Problem: .env appears to be tracked by git. Secrets may be exposed. Required change: Remove tracked env files from git, add safe examples such as .env.example, and make sure any exposed credentials are treated as compromised. Do not print, log, or preserve raw secret values; use placeholders only. Keep existing behavior intact where possible, add or update focused tests when useful, and do not silence the check unless the underlying risk is actually fixed.
-
-▲ HIGH It works, but your SQL query is one template string away from pain.
-✔ Check: database.raw-sql-interpolation
-📁 File: src/db.js:12
-🤔 Why: Possible SQL injection risk: raw SQL appears to be built with template string interpolation.
-🤖 prompt: You are a senior security engineer working in this repository. Fix the ItWorksBut finding database.raw-sql-interpolation at src/db.js:12. This finding is heuristic, so inspect the code first and only change behavior when the risk is real. Problem: Possible SQL injection risk: raw SQL appears to be built with template string interpolation. Required change: Replace SQL string interpolation or concatenation with parameterized queries, prepared statements, or a safe ORM query builder. Keep existing behavior intact where possible, add or update focused tests when useful, and do not silence the check unless the underlying risk is actually fixed.
-
-SUMMARY
-
-- ship status: DO NOT SHIP
-- Fix the red stuff before production.
-- total findings: 2
-- critical: 1
-- high: 1
-- medium: 0
-- low: 0
-- info: 0
-- fail-on: high
-- exit decision: 1
-
-```
-
-Secret-like findings never print the full secret value. Findings report the file, line, and secret type where possible.
 
 ## What It Detects
 
@@ -257,4 +241,3 @@ Each check is a plain ESM module with an `id`, metadata, and async `run(context)
 ItWorksBut is a static heuristic scanner, not a pentest, SAST replacement, dependency vulnerability database, or runtime security monitor. Findings intentionally use wording such as "possible", "potential", and "appears to" when a check is heuristic.
 
 Use it as a CI guardrail for common project hygiene and security mistakes. For production systems, combine it with code review, tests, dependency scanning, secrets scanning, threat modeling, and focused security assessment.
-```
