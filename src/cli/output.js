@@ -1,11 +1,10 @@
 import gradient from 'gradient-string';
 
 export function printUsage() {
-  process.stdout.write(`ItWorksBut
+    process.stdout.write(`ItWorksBut
 
 Usage:
   itworksbut scan [options]
-  node ./bin/itworksbut.js scan [options]
 
 Options:
   --path <path>       Project path to scan. Defaults to current directory.
@@ -25,14 +24,14 @@ Options:
 }
 
 export function printVersion(version) {
-  try {
-    process.stdout.write(`${gradient.rainbow(version)}\n`);
-  } catch {
-    process.stdout.write(`${version}\n`);
-  }
+    try {
+        process.stdout.write(`${gradient.rainbow(version)}\n`);
+    } catch {
+        process.stdout.write(`${version}\n`);
+    }
 }
 
 export function printRuntimeError(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`ItWorksBut runtime error: ${message}\n`);
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`ItWorksBut runtime error: ${message}\n`);
 }

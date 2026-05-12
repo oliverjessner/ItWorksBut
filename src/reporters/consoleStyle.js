@@ -26,6 +26,10 @@ const EDGY_TITLES = {
     'api.idor-risk': 'It works, but this ID lookup may belong to someone else.',
     'auth.jwt-secret-weak-or-fallback': 'It works, but your JWT secret has a fallback key.',
     'auth.password-hashing-missing': 'It works, but your passwords may be stored too honestly.',
+    'auth.missing-csrf-protection': 'It works, but your browser may be submitting forms behind your back.',
+    'api.missing-method-guard': 'It works, but your API does not care how it gets called.',
+    'api.mass-assignment-risk': 'It works, but your users may be editing fields they should never touch.',
+    'api.no-schema-validation': 'It works, but your API believes whatever the request says.',
     'database.raw-sql-interpolation': 'It works, but your SQL query is one template string away from pain.',
     'database.no-migrations': 'It works, but your database schema has no paper trail.',
     'cookies.insecure-session-cookie': 'It works, but your session cookie is dressed for localhost.',
@@ -33,10 +37,16 @@ const EDGY_TITLES = {
     'webhooks.missing-raw-body': 'It works, but your webhook signature check may be checking the wrong body.',
     'llm.prompt-injection-risk': 'It works, but your AI output has admin energy.',
     'frontend.sourcemaps-production': 'It works, but your source code may be shipping with the app.',
+    'frontend.localstorage-token': 'It works, but your auth token lives where XSS can read it.',
+    'files.path-traversal-risk': 'It works, but your file path may be taking requests too literally.',
+    'ssrf.user-controlled-fetch': 'It works, but your server is fetching whatever strangers ask for.',
+    'next.public-server-code-risk': 'It works, but your client component is carrying server baggage.',
     'config.debug-production': 'It works, but production still thinks it is a dev server.',
     'electron.node-integration-enabled': 'It works, but Electron is holding the Node.js door open.',
     'electron.context-isolation-disabled': 'It works, but your renderer and backend are sharing a room.',
+    'electron.remote-content-with-node': 'It works, but Electron is letting the internet sit next to Node.js.',
     'tauri.dangerous-allowlist-or-capabilities': 'It works, but your Tauri permissions look too generous.',
+    'tauri.remote-url-permissions-risk': 'It works, but your Tauri app is trusting too much surface area.',
 };
 
 const SEVERITY_META = {
@@ -100,6 +110,14 @@ const FIX_PROMPT_ACTIONS = {
         'Require a strong JWT secret from the environment in production and fail startup if it is missing.',
     'auth.password-hashing-missing':
         'Hash passwords with argon2, bcrypt, scrypt or PBKDF2 before storage. Never store raw passwords.',
+    'auth.missing-csrf-protection':
+        'Use SameSite cookies, CSRF tokens or another explicit CSRF mitigation for state-changing routes.',
+    'api.missing-method-guard':
+        'Restrict API routes to the intended HTTP methods and return 405 Method Not Allowed for unsupported methods.',
+    'api.mass-assignment-risk':
+        'Whitelist allowed fields explicitly. Never pass req.body directly into database create/update calls.',
+    'api.no-schema-validation':
+        'Validate request body, query and params with a schema library such as Zod, Joi, Valibot, AJV or equivalent.',
     'database.raw-sql-interpolation':
         'Replace SQL string interpolation or concatenation with parameterized queries, prepared statements, or a safe ORM query builder.',
     'database.no-migrations': 'Add versioned database migrations that match the detected ORM or database stack.',
@@ -113,14 +131,26 @@ const FIX_PROMPT_ACTIONS = {
         'Treat model output as untrusted input. Validate with schemas, use allowlists, require human approval for dangerous actions, and never execute raw model output.',
     'frontend.sourcemaps-production':
         'Disable public production source maps unless intentionally needed. If needed, upload them privately to error tracking instead of serving them publicly.',
+    'frontend.localstorage-token':
+        'Prefer secure, httpOnly cookies for session tokens where appropriate. If browser storage is unavoidable, minimize token lifetime and harden XSS protections.',
+    'files.path-traversal-risk':
+        'Normalize and validate paths, use allowlists, reject traversal sequences, and ensure resolved paths stay inside an intended base directory.',
+    'ssrf.user-controlled-fetch':
+        'Use strict URL allowlists, block private/internal IP ranges including 127.0.0.1, localhost, 169.254.169.254 and RFC1918 ranges, and avoid fetching arbitrary user-provided URLs.',
+    'next.public-server-code-risk':
+        'Move database, filesystem, secret and server-only logic into Server Components, API routes or server actions. Keep Client Components free of backend dependencies.',
     'config.debug-production':
         'Disable verbose errors and debug flags in production. Avoid exposing stack traces, internal paths or development tooling.',
     'electron.node-integration-enabled':
         'Set nodeIntegration to false and expose only narrowly scoped APIs through preload.',
     'electron.context-isolation-disabled':
         'Enable contextIsolation and review preload boundaries for renderer-to-main communication.',
+    'electron.remote-content-with-node':
+        'Avoid loading remote content with Node.js integration. Use nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true and a minimal preload bridge.',
     'tauri.dangerous-allowlist-or-capabilities':
         'Tighten Tauri allowlists, capabilities, scopes, shell access, filesystem access, remote URLs, and CSP.',
+    'tauri.remote-url-permissions-risk':
+        'Use least-privilege capabilities, restrict shell/fs/http permissions, avoid broad wildcards, and configure a strict CSP.',
 };
 
 export function getConsoleFindingTitle(finding) {

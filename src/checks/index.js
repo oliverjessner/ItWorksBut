@@ -27,6 +27,10 @@ import missingAuthOnRoutes from "./auth/missing-auth-on-routes.js";
 import idorRisk from "./auth/idor-risk.js";
 import jwtSecretWeakOrFallback from "./auth/jwt-secret-weak-or-fallback.js";
 import passwordHashingMissing from "./auth/password-hashing-missing.js";
+import missingCsrfProtection from "./auth/missing-csrf-protection.js";
+import missingMethodGuard from "./api/missing-method-guard.js";
+import massAssignmentRisk from "./api/mass-assignment-risk.js";
+import noSchemaValidation from "./api/no-schema-validation.js";
 import rawSqlInterpolation from "./database/raw-sql-interpolation.js";
 import noMigrations from "./database/no-migrations.js";
 import insecureSessionCookie from "./cookies/insecure-session-cookie.js";
@@ -34,10 +38,16 @@ import publicExecutableUpload from "./uploads/public-executable-upload.js";
 import missingRawBody from "./webhooks/missing-raw-body.js";
 import promptInjectionRisk from "./llm/prompt-injection-risk.js";
 import sourceMapsProduction from "./frontend/sourcemaps-production.js";
+import localstorageToken from "./frontend/localstorage-token.js";
+import pathTraversalRisk from "./files/path-traversal-risk.js";
+import userControlledFetch from "./ssrf/user-controlled-fetch.js";
+import nextPublicServerCodeRisk from "./next/public-server-code-risk.js";
 import debugProduction from "./config/debug-production.js";
 import electronNodeIntegrationEnabled from "./electron/node-integration-enabled.js";
 import electronContextIsolationDisabled from "./electron/context-isolation-disabled.js";
+import electronRemoteContentWithNode from "./electron/remote-content-with-node.js";
 import tauriDangerousAllowlistOrCapabilities from "./tauri/dangerous-allowlist-or-capabilities.js";
+import tauriRemoteUrlPermissionsRisk from "./tauri/remote-url-permissions-risk.js";
 
 export default [
   gitignoreMissing,
@@ -69,6 +79,10 @@ export default [
   idorRisk,
   jwtSecretWeakOrFallback,
   passwordHashingMissing,
+  missingCsrfProtection,
+  missingMethodGuard,
+  massAssignmentRisk,
+  noSchemaValidation,
   rawSqlInterpolation,
   noMigrations,
   insecureSessionCookie,
@@ -76,8 +90,14 @@ export default [
   missingRawBody,
   promptInjectionRisk,
   sourceMapsProduction,
+  localstorageToken,
+  pathTraversalRisk,
+  userControlledFetch,
+  nextPublicServerCodeRisk,
   debugProduction,
   electronNodeIntegrationEnabled,
   electronContextIsolationDisabled,
-  tauriDangerousAllowlistOrCapabilities
+  electronRemoteContentWithNode,
+  tauriDangerousAllowlistOrCapabilities,
+  tauriRemoteUrlPermissionsRisk
 ];

@@ -197,7 +197,7 @@ Secret-like findings never print the full secret value. Findings report the file
 
 ## What It Detects
 
-The baseline includes 40 modular checks:
+The baseline includes 50 modular checks:
 
 - `git.gitignore-missing`
 - `git.gitignore-incomplete`
@@ -228,6 +228,10 @@ The baseline includes 40 modular checks:
 - `api.idor-risk`
 - `auth.jwt-secret-weak-or-fallback`
 - `auth.password-hashing-missing`
+- `auth.missing-csrf-protection`
+- `api.missing-method-guard`
+- `api.mass-assignment-risk`
+- `api.no-schema-validation`
 - `database.raw-sql-interpolation`
 - `database.no-migrations`
 - `cookies.insecure-session-cookie`
@@ -235,10 +239,16 @@ The baseline includes 40 modular checks:
 - `webhooks.missing-raw-body`
 - `llm.prompt-injection-risk`
 - `frontend.sourcemaps-production`
+- `frontend.localstorage-token`
+- `files.path-traversal-risk`
+- `ssrf.user-controlled-fetch`
+- `next.public-server-code-risk`
 - `config.debug-production`
 - `electron.node-integration-enabled`
 - `electron.context-isolation-disabled`
+- `electron.remote-content-with-node`
 - `tauri.dangerous-allowlist-or-capabilities`
+- `tauri.remote-url-permissions-risk`
 
 Each check is a plain ESM module with an `id`, metadata, and async `run(context)` function. Add new checks under `src/checks/` and register them in `src/checks/index.js`.
 

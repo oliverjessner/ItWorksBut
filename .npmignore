@@ -1,0 +1,7 @@
+docs/
+scripts/
+tests/
+itworksbut.config.json
+itworksbut.self.config.json
+itworksbut.self.config.json
+.gitignore

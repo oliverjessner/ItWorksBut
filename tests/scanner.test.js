@@ -199,6 +199,139 @@ test("debug flags in production config are reported", async () => {
   assert.equal(finding.severity, "high");
 });
 
+test("cookie auth with state-changing routes and no CSRF protection is reported", async () => {
+  const root = await fixture();
+  await writeJson(root, "package.json", { dependencies: { express: "^4.18.0" } });
+  await writeFile(
+    root,
+    "server.js",
+    "import express from 'express';\nconst app = express();\napp.post('/api/profile', (req, res) => {\n  res.cookie('session', token);\n  res.json({ ok: true });\n});\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "auth.missing-csrf-protection");
+});
+
+test("Next Pages API handlers without method guards are reported", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "pages/api/update.js",
+    "export default async function handler(req, res) {\n  await save(req.body);\n  res.status(200).json({ ok: true });\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "api.missing-method-guard");
+});
+
+test("direct request bodies in database updates are reported as mass assignment risk", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "server/users.js",
+    "export async function updateUser(req, prisma) {\n  return prisma.user.update({ where: { id: req.params.id }, data: req.body });\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "api.mass-assignment-risk");
+});
+
+test("API request input without schema validation is reported", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "routes/users.js",
+    "export function createUser(req, res) {\n  const email = req.body.email;\n  res.json({ email });\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "api.no-schema-validation");
+});
+
+test("request-controlled file paths are reported", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "server/download.js",
+    "import fs from 'node:fs';\nimport path from 'node:path';\nconst baseDir = '/tmp/files';\nexport function download(req, res) {\n  fs.readFile(path.join(baseDir, req.query.file), (error, data) => res.end(data));\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "files.path-traversal-risk");
+});
+
+test("server fetches from request-controlled URLs are reported", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "server/proxy.js",
+    "export async function proxy(req) {\n  return await fetch(req.body.url);\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "ssrf.user-controlled-fetch");
+});
+
+test("auth tokens in browser storage are reported", async () => {
+  const root = await fixture();
+  await writeFile(root, "src/App.jsx", "export function remember(token) {\n  localStorage.setItem('access_token', token);\n}\n");
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "frontend.localstorage-token");
+});
+
+test("Next Client Components importing server code are reported", async () => {
+  const root = await fixture();
+  await writeJson(root, "package.json", { dependencies: { next: "^15.0.0" } });
+  await writeFile(
+    root,
+    "app/page.tsx",
+    "\"use client\";\nimport { prisma } from '@/lib/prisma';\nexport default function Page() {\n  return <button>Save</button>;\n}\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "next.public-server-code-risk");
+});
+
+test("Electron remote content with risky renderer privileges is reported", async () => {
+  const root = await fixture();
+  await writeJson(root, "package.json", { dependencies: { electron: "^30.0.0" } });
+  await writeFile(
+    root,
+    "main.js",
+    "const { BrowserWindow } = require('electron');\nconst mainWindow = new BrowserWindow({ webPreferences: { nodeIntegration: true, contextIsolation: false } });\nmainWindow.loadURL('https://example.com');\n"
+  );
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "electron.remote-content-with-node");
+});
+
+test("Tauri weak CSP or broad permissions are reported", async () => {
+  const root = await fixture();
+  await writeJson(root, "src-tauri/tauri.conf.json", {
+    app: {
+      security: {
+        csp: null,
+        dangerousDisableAssetCspModification: true
+      }
+    },
+    permissions: ["*"]
+  });
+
+  const result = await scanProject({ rootPath: root });
+
+  assertHasFinding(result, "tauri.remote-url-permissions-risk");
+});
+
 test("new checks can be disabled through config", async () => {
   const root = await fixture();
   await writeFile(root, "server.js", "export function login(req, res, token) {\n  res.cookie('session', token);\n}\n");
