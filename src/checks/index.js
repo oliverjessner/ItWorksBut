@@ -10,6 +10,7 @@ import lockfileMissing from "./dependencies/lockfile-missing.js";
 import multipleLockfiles from "./dependencies/multiple-lockfiles.js";
 import installScriptsRisk from "./dependencies/install-scripts-risk.js";
 import auditScriptMissing from "./dependencies/audit-script-missing.js";
+import outdatedPackages from "./dependencies/outdated-packages.js";
 import packageScriptsMissing from "./package/scripts-missing.js";
 import noCiConfig from "./ci/no-ci-config.js";
 import npmInstallInsteadOfNpmCi from "./ci/npm-install-instead-of-npm-ci.js";
@@ -62,6 +63,7 @@ export default [
   multipleLockfiles,
   installScriptsRisk,
   auditScriptMissing,
+  outdatedPackages,
   packageScriptsMissing,
   noCiConfig,
   npmInstallInsteadOfNpmCi,

@@ -6,7 +6,7 @@ It focuses on common "it works, but..." risks often found in AI-generated or rus
 
 For every finding, ItWorksBut gives you a copy-ready fix prompt you can paste into your coding agent. It does not just say what is wrong; it tells your AI exactly what to inspect, what to change, and what not to leak.
 
-It only reads files and reports findings. It does not call external APIs, does not send telemetry, and does not modify the scanned project unless you explicitly ask it to write `todo.md` with `--todo`.
+It mostly reads files and reports findings. It does not send telemetry. The outdated-package check may invoke your local package manager, and the CLI only writes files when you explicitly ask for `todo.md` with `--todo` or `report.md` with `--report`.
 
 ## Table of Contents
 
@@ -53,6 +53,7 @@ itworksbut scan --fail-on high
 itworksbut scan --json
 itworksbut scan --sarif > itworksbut.sarif
 itworksbut scan --todo
+itworksbut scan --report
 itworksbut scan --config itworksbut.config.json
 itworksbut scan --verbose
 itworksbut --version
@@ -70,6 +71,7 @@ itworksbut scan [options]
 - `--json`: Print machine-readable JSON only. No banner, colors, spinner, table, or extra text.
 - `--sarif`: Print SARIF JSON for GitHub Code Scanning. No banner, colors, spinner, table, or extra text.
 - `--todo`: Write an AI-ready `todo.md` into the scanned project with prioritized findings, fix prompts, and acceptance criteria.
+- `--report`: Write a Markdown `report.md` into the current working directory.
 - `--verbose`: Include scanner warnings and extra metadata in console output.
 - `--quiet`: Print only the summary.
 - `--no-color`: Disable colored output.
@@ -108,6 +110,14 @@ itworksbut scan --todo
 ```
 
 This writes `todo.md` to the scanned project. The file is ordered by severity and includes agent rules, exact fix prompts, locations, recommendations, and final verification checkboxes.
+
+To create a Markdown scan report:
+
+```sh
+itworksbut scan --report
+```
+
+This writes `report.md` to the current working directory with check statuses, summaries, details, and recommendations.
 
 ## GitHub Actions
 
@@ -181,7 +191,7 @@ release/**
 
 ## What It Detects
 
-The baseline includes 50 modular checks:
+The baseline includes 51 modular checks:
 
 - `git.gitignore-missing`
 - `git.gitignore-incomplete`
@@ -195,6 +205,7 @@ The baseline includes 50 modular checks:
 - `dependencies.multiple-lockfiles`
 - `dependencies.install-scripts-risk`
 - `dependencies.audit-script-missing`
+- `dependencies.outdated-packages`
 - `package.scripts-missing`
 - `ci.no-ci-config`
 - `ci.npm-install-instead-of-npm-ci`

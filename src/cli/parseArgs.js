@@ -1,5 +1,5 @@
 const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path"]);
-const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--todo", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
+const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--todo", "--report", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
 
 export function parseArgs(argv) {
   const args = {
@@ -10,6 +10,7 @@ export function parseArgs(argv) {
     json: false,
     sarif: false,
     todo: false,
+    report: false,
     verbose: false,
     noColor: false,
     noBanner: false,
@@ -48,6 +49,7 @@ export function parseArgs(argv) {
       if (token === "--json") args.json = true;
       if (token === "--sarif") args.sarif = true;
       if (token === "--todo") args.todo = true;
+      if (token === "--report") args.report = true;
       if (token === "--verbose") args.verbose = true;
       if (token === "--no-color") args.noColor = true;
       if (token === "--no-banner") args.noBanner = true;

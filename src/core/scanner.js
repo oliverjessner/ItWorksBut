@@ -1,5 +1,6 @@
 import checks from "../checks/index.js";
 import { createContext } from "./context.js";
+import { normalizeCheckResult } from "./checkResults.js";
 import { normalizeFinding, severityRank } from "./findings.js";
 import { packageInfo } from "./packageInfo.js";
 
@@ -7,28 +8,54 @@ export async function scanProject(options = {}) {
   const startedAt = new Date();
   const context = await createContext(options);
   const findings = [];
+  const checkResults = [];
   const warnings = [];
 
   for (const check of checks) {
-    if (context.config.checks[check.id] === false) continue;
+    if (context.config.checks[check.id] === false) {
+      checkResults.push(normalizeCheckResult(check, {
+        status: "skip",
+        summary: "Disabled by configuration."
+      }));
+      continue;
+    }
 
     try {
-      const checkFindings = await check.run(context);
+      const rawResult = await check.run(context);
+      const checkFindings = Array.isArray(rawResult) ? rawResult : rawResult?.findings;
+      const explicitCheckResult = Array.isArray(rawResult) ? null : rawResult?.result || rawResult?.checkResult;
+
       if (!Array.isArray(checkFindings)) {
         warnings.push({
           checkId: check.id,
           message: "Check returned a non-array result and was ignored."
         });
+        checkResults.push(normalizeCheckResult(check, {
+          status: "fail",
+          summary: "Check returned an invalid result.",
+          details: [{ message: "Check returned a non-array result and was ignored." }]
+        }));
         continue;
       }
+
+      const normalizedFindings = [];
       for (const finding of checkFindings) {
-        findings.push(normalizeFinding(check, finding));
+        const normalizedFinding = normalizeFinding(check, finding);
+        normalizedFindings.push(normalizedFinding);
+        findings.push(normalizedFinding);
       }
+      checkResults.push(normalizeCheckResult(check, explicitCheckResult || {}, normalizedFindings));
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       warnings.push({
         checkId: check.id,
-        message: error instanceof Error ? error.message : String(error)
+        message
       });
+      checkResults.push(normalizeCheckResult(check, {
+        status: "fail",
+        summary: message,
+        details: [{ message }]
+      }));
     }
   }
 
@@ -40,12 +67,14 @@ export async function scanProject(options = {}) {
 
   return {
     findings,
+    checks: checkResults,
     warnings,
     config: context.config,
     meta: {
       tool: "ItWorksBut",
       version: packageInfo.version,
       rootPath: context.rootPath,
+      packageName: context.packageJson?.name,
       packageManager: context.packageManager,
       gitAvailable: context.gitAvailable,
       filesScanned: context.allFiles.length,

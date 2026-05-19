@@ -10,6 +10,7 @@ import { reportConsole } from '../src/reporters/consoleReporter.js';
 import { reportJson } from '../src/reporters/jsonReporter.js';
 import { reportSarif } from '../src/reporters/sarifReporter.js';
 import { writeTodoReport } from '../src/reporters/todoReporter.js';
+import { writeMarkdownReport } from '../src/reporters/markdownReport.js';
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
@@ -57,6 +58,14 @@ async function main() {
         if (!args.quiet) process.stdout.write(`Wrote AI todo file: ${filePath}\n`);
     } else {
         reportConsole(result, args);
+    }
+
+    if (args.report) {
+        const report = await writeMarkdownReport(result);
+        if (!args.json && !args.sarif) {
+            const verb = report.overwritten ? 'Overwrote' : 'Wrote';
+            process.stdout.write(`${verb} scan report: ${report.filePath}\n`);
+        }
     }
 
     return getExitCode(result.findings, result.config.failOn);

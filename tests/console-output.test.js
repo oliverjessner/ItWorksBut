@@ -75,6 +75,46 @@ test('--todo writes an AI-ready todo.md without banner output', async () => {
     assert.match(todo, /## Final Verification/);
 });
 
+test('scan works without --report and does not write report.md', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'scan', '--fail-on', 'critical', '--no-banner', '--no-color'],
+        {
+            cwd: root,
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    assert.doesNotMatch(output, /scan report:/i);
+    await assert.rejects(fs.access(path.join(root, 'report.md')));
+});
+
+test('--report writes report.md and reports that it was overwritten', async () => {
+    const root = await fixture();
+    await fs.writeFile(path.join(root, 'package.json'), `${JSON.stringify({ name: 'report-fixture' }, null, 2)}\n`);
+    await fs.writeFile(path.join(root, 'report.md'), 'old report\n');
+
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'scan', '--report', '--fail-on', 'critical', '--no-banner', '--no-color'],
+        {
+            cwd: root,
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+    const report = await fs.readFile(path.join(root, 'report.md'), 'utf8');
+
+    assert.match(output, /Overwrote scan report: .*report\.md/);
+    assert.match(report, /^# ItWorksBut Scan Report/m);
+    assert.match(report, /\| Status \| Count \|/);
+    assert.match(report, /### Outdated packages/);
+    assert.doesNotMatch(report, /old report/);
+    assert.equal(stripAnsi(report), report);
+});
+
 test('--version prints package version', () => {
     const env = { ...process.env, FORCE_COLOR: '1' };
     delete env.NO_COLOR;

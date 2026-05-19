@@ -12,15 +12,17 @@ import {
 
 export function reportConsole(result, options = {}) {
     const { findings, warnings, config, meta } = result;
+    const checks = result.checks || [];
     const counts = countBySeverity(findings);
     const colors = getChalk(options);
     const rich = isFancyOutputEnabled(options);
+    const hasReviewCheck = checks.some(check => check.status === 'warn' || check.status === 'fail');
 
     if (!options.quiet && !rich) {
         process.stdout.write(`${colors.bold('ItWorksBut receipts')}\n\n`);
     }
 
-    if (!options.quiet && findings.length === 0) {
+    if (!options.quiet && findings.length === 0 && !hasReviewCheck) {
         process.stdout.write(
             `${colors.green ? colors.green('Suspiciously clean. No findings.') : 'Suspiciously clean. No findings.'}\n\n`,
         );
@@ -34,6 +36,10 @@ export function reportConsole(result, options = {}) {
             }
             process.stdout.write('\n');
         }
+    }
+
+    if (!options.quiet) {
+        writeOutdatedPackagesCheck(checks, options);
     }
 
     if (options.verbose && warnings.length > 0) {
@@ -53,6 +59,41 @@ export function reportConsole(result, options = {}) {
         process.stdout.write(`- git available: ${meta.gitAvailable}\n`);
         process.stdout.write(`- warnings: ${warnings.length}\n`);
     }
+}
+
+function writeOutdatedPackagesCheck(checks, options) {
+    const check = checks.find(candidate => candidate.id === 'dependencies.outdated-packages');
+    if (!check) return;
+
+    const colors = getChalk(options);
+    const title = colors.bold('Outdated packages');
+
+    if (check.status === 'pass') {
+        process.stdout.write(`${colors.green('✓')} ${title}: ${check.summary}\n\n`);
+        return;
+    }
+
+    if (check.status === 'skip') {
+        process.stdout.write(`- ${title}: ${check.summary}\n\n`);
+        return;
+    }
+
+    if (check.status === 'fail') {
+        process.stdout.write(`${colors.red('✖')} ${title}: ${check.summary}\n\n`);
+        return;
+    }
+
+    process.stdout.write(`${colors.yellow('⚠')} ${title}: ${check.summary}\n`);
+    const packages = check.details.filter(detail => detail?.name).slice(0, 10);
+    for (const detail of packages) {
+        process.stdout.write(
+            `  - ${detail.name}: ${detail.current} → ${detail.wanted} wanted, ${detail.latest} latest\n`,
+        );
+    }
+    if (check.details.length > packages.length) {
+        process.stdout.write(`  - and ${check.details.length - packages.length} more\n`);
+    }
+    process.stdout.write('\n');
 }
 
 function writeFinding(finding, options) {

@@ -14,6 +14,7 @@ Options:
   --json              Print machine-readable JSON.
   --sarif             Print SARIF for GitHub Code Scanning.
   --todo              Write an AI-ready todo.md to the scanned project.
+  --report            Write a Markdown scan report.md to the current directory.
   --no-color          Disable color styling.
   --no-banner         Disable the intro banner.
   --quiet             Print only the summary.
