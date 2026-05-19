@@ -15,6 +15,14 @@ test("127.0.0.1 stress target is allowed without ownership flag", () => {
   assert.equal(options.local, true);
 });
 
+test("stress target path is preserved as explicit endpoint path", () => {
+  const options = validateStressOptions({ target: "http://localhost:3000/app" });
+
+  assert.equal(options.target, "http://localhost:3000/app");
+  assert.equal(options.artilleryTarget, "http://localhost:3000");
+  assert.equal(options.targetPath, "/app");
+});
+
 test("external stress target is blocked without ownership flag", () => {
   assert.throws(
     () => validateStressOptions({ target: "https://example.com" }),

@@ -15,6 +15,8 @@ export const STRESS_LIMITS = {
 
 export function validateStressOptions(args = {}) {
   const target = normalizeTarget(args.target || STRESS_DEFAULTS.target);
+  const parsedTarget = new URL(target);
+  const targetPath = getExplicitTargetPath(parsedTarget);
   const duration = parsePositiveNumber(args.duration, STRESS_DEFAULTS.duration, "duration");
   const arrivalRate = parsePositiveNumber(args.arrivalRate, STRESS_DEFAULTS.arrivalRate, "arrival-rate");
   const maxVusers = parsePositiveInteger(args.maxVusers, STRESS_DEFAULTS.maxVusers, "max-vusers");
@@ -32,6 +34,8 @@ export function validateStressOptions(args = {}) {
 
   return {
     target,
+    artilleryTarget: targetPath ? parsedTarget.origin : target,
+    targetPath,
     duration,
     arrivalRate,
     maxVusers,
@@ -64,6 +68,12 @@ function normalizeTarget(value) {
   }
 
   return parsed.toString().replace(/\/$/, "");
+}
+
+function getExplicitTargetPath(parsed) {
+  const pathname = parsed.pathname.replace(/\/$/, "") || "/";
+  if (pathname === "/" && !parsed.search) return null;
+  return `${pathname}${parsed.search}`;
 }
 
 function parsePositiveNumber(value, fallback, label) {

@@ -36,9 +36,10 @@ export async function runStressCommand(args, options = {}) {
 
 export async function runStress(options, runnerOptions = {}) {
   const startedAt = new Date();
-  const discovery = await discoverEndpoints(options.rootPath);
+  const discovery = withExplicitTargetEndpoint(await discoverEndpoints(options.rootPath), options.targetPath);
   const baseDetails = {
     target: options.target,
+    artilleryTarget: options.artilleryTarget || options.target,
     duration: options.duration,
     arrivalRate: options.arrivalRate,
     maxVusers: options.maxVusers,
@@ -77,7 +78,7 @@ export async function runStress(options, runnerOptions = {}) {
   }
 
   const config = createArtilleryConfig({
-    target: options.target,
+    target: options.artilleryTarget || options.target,
     duration: options.duration,
     arrivalRate: options.arrivalRate,
     maxVusers: options.maxVusers,
@@ -111,4 +112,31 @@ function stressResult(result) {
     title: "API stress test",
     ...result
   };
+}
+
+function withExplicitTargetEndpoint(discovery, targetPath) {
+  if (!targetPath) return discovery;
+  if (discovery.endpoints.some((endpoint) => endpoint.method === "GET" && endpoint.path === targetPath)) {
+    return discovery;
+  }
+
+  const explicitEndpoint = {
+    method: "GET",
+    path: targetPath,
+    source: "--target",
+    type: "explicit-target",
+    dynamic: false,
+    status: "selected"
+  };
+
+  return {
+    status: "pass",
+    endpoints: sortEndpoints([...discovery.endpoints, explicitEndpoint]),
+    safeEndpoints: sortEndpoints([...discovery.safeEndpoints, explicitEndpoint]),
+    skippedEndpoints: discovery.skippedEndpoints
+  };
+}
+
+function sortEndpoints(endpoints) {
+  return [...endpoints].sort((a, b) => `${a.method} ${a.path}`.localeCompare(`${b.method} ${b.path}`));
 }

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { runStress } from "../src/commands/stress.js";
+import { validateStressOptions } from "../src/utils/targetSafety.js";
 
 test("runStress discovers safe endpoints and parses mocked Artillery results", async () => {
   const root = await fixture();
@@ -60,6 +61,43 @@ test("runStress fails when only unsafe endpoints are discovered", async () => {
   assert.equal(result.status, "fail");
   assert.equal(result.details.testedEndpoints.length, 0);
   assert.equal(result.details.skippedEndpoints[0].reason, "unsafe method");
+});
+
+test("runStress tests an explicit target path when discovery finds no source endpoints", async () => {
+  const root = await fixture();
+  await writeFile(root, "index.js", "console.log('no routes here');\n");
+  let capturedConfig;
+
+  const result = await runStress({
+    rootPath: root,
+    ...validateStressOptions({ target: "http://localhost:3000/app" })
+  }, {
+    execute: async (config) => {
+      capturedConfig = config;
+      return {
+        ok: true,
+        report: {
+          aggregate: {
+            counters: {
+              "http.requests": 2,
+              "http.codes.200": 2
+            },
+            summaries: {
+              "http.response_time": { p95: 12, p99: 18 }
+            }
+          }
+        }
+      };
+    }
+  });
+
+  assert.equal(result.status, "pass");
+  assert.equal(result.details.target, "http://localhost:3000/app");
+  assert.equal(result.details.artilleryTarget, "http://localhost:3000");
+  assert.equal(result.details.endpointsFound, 1);
+  assert.equal(result.details.testedEndpoints[0].path, "/app");
+  assert.equal(capturedConfig.config.target, "http://localhost:3000");
+  assert.deepEqual(capturedConfig.scenarios[0].flow, [{ get: { url: "/app" } }]);
 });
 
 async function fixture() {
