@@ -50,6 +50,7 @@ Common commands:
 ```sh
 itworksbut scan --path .
 itworksbut deps
+itworksbut stress
 itworksbut scan --fail-on high
 itworksbut scan --json
 itworksbut scan --sarif > itworksbut.sarif
@@ -65,12 +66,19 @@ itworksbut --version
 ```text
 itworksbut scan [options]
 itworksbut deps [options]
+itworksbut stress [options]
 ```
 
 - `deps`: Run only dependency checks, including lockfile hygiene, install-script risk, audit script availability, and outdated packages.
+- `stress`: Discover API endpoints and run a controlled Artillery load test against local or explicitly authorized targets.
 - `--path <path>`: Scan a specific project directory. Defaults to the current directory.
 - `--config <path>`: Use a custom config file. Defaults to `itworksbut.config.json` when present.
 - `--fail-on <severity>`: Exit with code `1` when a finding at or above the severity exists. Levels: `critical`, `high`, `medium`, `low`, `info`. Default: `low`.
+- `--target <url>`: Stress-test target. Defaults to `http://localhost:3000`. External targets require `--i-own-this`.
+- `--duration <seconds>`: Stress-test duration. Default `30`, maximum `300`.
+- `--arrival-rate <number>`: Arrival rate in requests per second. Default `5`, maximum `50`.
+- `--max-vusers <number>`: Virtual user cap. Default `50`, maximum `100`.
+- `--i-own-this`: Required for non-local stress-test targets.
 - `--json`: Print machine-readable JSON only. No banner, colors, spinner, table, or extra text.
 - `--sarif`: Print SARIF JSON for GitHub Code Scanning. No banner, colors, spinner, table, or extra text.
 - `--todo`: Write an AI-ready `todo.md` into the scanned project with prioritized findings, fix prompts, and acceptance criteria.
@@ -121,6 +129,16 @@ itworksbut scan --report
 ```
 
 This writes `report.md` to the current working directory with check statuses, summaries, details, and recommendations.
+
+To run a controlled API stress test:
+
+```sh
+itworksbut stress
+itworksbut stress --target https://my-own-api.example --i-own-this
+itworksbut stress --report
+```
+
+`stress` only tests local targets by default. For external hosts, pass `--i-own-this` to confirm that you own the target or have explicit authorization. Mutating endpoints such as `POST`, `PUT`, `PATCH`, and `DELETE` are discovered but skipped automatically.
 
 ## GitHub Actions
 

@@ -1,5 +1,5 @@
-const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path"]);
-const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--todo", "--report", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
+const FLAG_WITH_VALUE = new Set(["--fail-on", "--config", "--path", "--target", "--duration", "--arrival-rate", "--max-vusers"]);
+const BOOLEAN_FLAGS = new Set(["--json", "--sarif", "--todo", "--report", "--i-own-this", "--verbose", "--help", "-h", "--version", "-v", "--no-color", "--no-banner", "--quiet"]);
 
 export function parseArgs(argv) {
   const args = {
@@ -11,6 +11,11 @@ export function parseArgs(argv) {
     sarif: false,
     todo: false,
     report: false,
+    target: undefined,
+    duration: undefined,
+    arrivalRate: undefined,
+    maxVusers: undefined,
+    iOwnThis: false,
     verbose: false,
     noColor: false,
     noBanner: false,
@@ -50,6 +55,7 @@ export function parseArgs(argv) {
       if (token === "--sarif") args.sarif = true;
       if (token === "--todo") args.todo = true;
       if (token === "--report") args.report = true;
+      if (token === "--i-own-this") args.iOwnThis = true;
       if (token === "--verbose") args.verbose = true;
       if (token === "--no-color") args.noColor = true;
       if (token === "--no-banner") args.noBanner = true;
@@ -71,5 +77,9 @@ function assignValue(args, flag, value) {
   if (flag === "--fail-on") args.failOn = value;
   else if (flag === "--config") args.config = value;
   else if (flag === "--path") args.path = value;
+  else if (flag === "--target") args.target = value;
+  else if (flag === "--duration") args.duration = value;
+  else if (flag === "--arrival-rate") args.arrivalRate = value;
+  else if (flag === "--max-vusers") args.maxVusers = value;
   else throw new Error(`Unknown argument: ${flag}`);
 }

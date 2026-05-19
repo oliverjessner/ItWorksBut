@@ -54,6 +54,98 @@ test('deps command runs only dependency checks', async () => {
     assert.equal(parsed.checks.some(check => check.id === 'git.gitignore-missing'), false);
 });
 
+test('stress command runs with safe defaults when no endpoints are found', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'stress', '--path', root, '--no-banner', '--no-color'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    assert.match(output, /ItWorksBut Stress/);
+    assert.match(output, /Target: http:\/\/localhost:3000/);
+    assert.match(output, /Only run this against systems you own/);
+    assert.match(output, /Status: skip/);
+});
+
+test('stress command accepts explicit localhost target', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'stress', '--path', root, '--target', 'http://localhost:3000', '--json'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    const parsed = JSON.parse(output);
+
+    assert.equal(parsed.id, 'stress-test');
+    assert.equal(parsed.details.target, 'http://localhost:3000');
+    assert.equal(parsed.status, 'skip');
+});
+
+test('stress command blocks external targets without ownership flag', async () => {
+    const root = await fixture();
+
+    assert.throws(
+        () =>
+            execFileSync(process.execPath, [cliPath, 'stress', '--path', root, '--target', 'https://example.com', '--report'], {
+                cwd: root,
+                encoding: 'utf8',
+                env: { ...process.env, CI: 'true' },
+            }),
+        error => {
+            assert.equal(error.status, 2);
+            assert.match(error.stderr, /Refusing to stress-test an external target/);
+            return true;
+        },
+    );
+    await assert.rejects(fs.access(path.join(root, 'stress-report.md')));
+});
+
+test('stress command allows external targets with ownership flag', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'stress', '--path', root, '--target', 'https://example.com', '--i-own-this', '--json'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    const parsed = JSON.parse(output);
+
+    assert.equal(parsed.details.target, 'https://example.com');
+    assert.equal(parsed.status, 'skip');
+});
+
+test('stress --report writes stress-report.md', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'stress', '--path', root, '--report', '--no-banner', '--no-color'],
+        {
+            cwd: root,
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+    const report = await fs.readFile(path.join(root, 'stress-report.md'), 'utf8');
+
+    assert.match(output, /Wrote stress report: .*stress-report\.md/);
+    assert.match(report, /^# ItWorksBut Stress Report/m);
+    assert.match(report, /\| Metric \| Value \|/);
+    assert.match(report, /## Tested Endpoints/);
+    assert.match(report, /## Skipped Endpoints/);
+    assert.equal(stripAnsi(report), report);
+});
+
 test('--sarif contains no banner and is valid SARIF JSON', async () => {
     const root = await fixture();
     const output = execFileSync(

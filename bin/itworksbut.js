@@ -11,6 +11,7 @@ import { reportJson } from '../src/reporters/jsonReporter.js';
 import { reportSarif } from '../src/reporters/sarifReporter.js';
 import { writeTodoReport } from '../src/reporters/todoReporter.js';
 import { writeMarkdownReport } from '../src/reporters/markdownReport.js';
+import { runStressCommand } from '../src/commands/stress.js';
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
@@ -23,6 +24,10 @@ async function main() {
     if (args.version) {
         printVersion(`It Works But… version ${packageInfo.version}`);
         return 0;
+    }
+
+    if (args.command === 'stress') {
+        return await runStressCommand(args);
     }
 
     if (!['scan', 'deps'].includes(args.command)) {
