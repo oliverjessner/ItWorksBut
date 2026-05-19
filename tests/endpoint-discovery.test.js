@@ -23,6 +23,30 @@ test("endpoint discovery finds Express router.get routes", async () => {
   assertEndpoint(result.safeEndpoints, "GET", "/users");
 });
 
+test("endpoint discovery applies mounted API prefixes to router routes", async () => {
+  const root = await fixture();
+  await writeFile(root, "server.js", 'app.use("/api", router);\n');
+  await writeFile(root, "routes/users.js", 'router.get("/users", handler);\n');
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/users");
+});
+
+test("endpoint discovery finds Fastify route calls and route objects", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "server.js",
+    'fastify.get("/api/health", handler);\nfastify.route({ method: "POST", url: "/api/users", handler });\n'
+  );
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/health");
+  assertSkipped(result, "POST", "/api/users", "unsafe method");
+});
+
 test("endpoint discovery finds Next.js App Router route files", async () => {
   const root = await fixture();
   await writeFile(root, "app/api/health/route.js", "export async function GET() {}\n");
@@ -32,6 +56,15 @@ test("endpoint discovery finds Next.js App Router route files", async () => {
   assertEndpoint(result.safeEndpoints, "GET", "/api/health");
 });
 
+test("endpoint discovery finds Next.js App Router route handlers outside /api", async () => {
+  const root = await fixture();
+  await writeFile(root, "app/app/route.ts", "export async function GET() {}\n");
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/app");
+});
+
 test("endpoint discovery finds Next.js Pages Router files", async () => {
   const root = await fixture();
   await writeFile(root, "pages/api/health.js", "export default function handler(req, res) {}\n");
@@ -39,6 +72,33 @@ test("endpoint discovery finds Next.js Pages Router files", async () => {
   const result = await discoverEndpoints(root);
 
   assertEndpoint(result.safeEndpoints, "GET", "/api/health");
+});
+
+test("endpoint discovery finds SvelteKit server routes", async () => {
+  const root = await fixture();
+  await writeFile(root, "src/routes/api/health/+server.ts", "export async function GET() {}\n");
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/health");
+});
+
+test("endpoint discovery finds Nitro server API routes", async () => {
+  const root = await fixture();
+  await writeFile(root, "server/api/health.get.ts", "export default defineEventHandler(() => ({ ok: true }));\n");
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/health");
+});
+
+test("endpoint discovery infers SAST API candidate files", async () => {
+  const root = await fixture();
+  await writeFile(root, "routes/health.js", "export default function handler(req, res) { res.json({ ok: true }); }\n");
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/health");
 });
 
 test("endpoint discovery marks dynamic routes as skipped", async () => {

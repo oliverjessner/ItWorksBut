@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
-import { printIntro, isFancyOutputEnabled, shouldUseSpinner } from '../src/cli/terminal.js';
+import { printIntro, isFancyOutputEnabled, shouldUseSpinner, createStressSpinner } from '../src/cli/terminal.js';
 import { reportConsole } from '../src/reporters/consoleReporter.js';
 import { formatSeverity, getFixPrompt, getShipStatus } from '../src/reporters/consoleStyle.js';
 import { reportTodo } from '../src/reporters/todoReporter.js';
@@ -250,6 +250,29 @@ test('--no-banner suppresses intro output', () => {
     assert.equal(output, '');
 });
 
+test('stress intro uses the shared banner style and safety copy', () => {
+    const output = withCiDisabled(() =>
+        captureStdout(() => {
+            withTty(true, () => {
+                printIntro({ command: 'stress', noColor: true });
+            });
+        }),
+    );
+
+    assert.match(output, /Controlled API stress test\./);
+    assert.match(output, /Only run this against systems you own or are authorized to test\./);
+});
+
+test('stress spinner is enabled for interactive console output', () => {
+    withCiDisabled(() => {
+        withTty(true, () => {
+            const spinner = createStressSpinner({ command: 'stress' });
+            assert.ok(spinner);
+            assert.equal(spinner.text, 'Running controlled API stress test');
+        });
+    });
+});
+
 test('console output renders medium findings and caution summary', () => {
     const output = captureStdout(() => {
         reportConsole(
@@ -444,6 +467,21 @@ function withTty(value, fn) {
             Object.defineProperty(process.stdout, 'isTTY', descriptor);
         } else {
             delete process.stdout.isTTY;
+        }
+    }
+}
+
+function withCiDisabled(fn) {
+    const previous = process.env.CI;
+    delete process.env.CI;
+
+    try {
+        return fn();
+    } finally {
+        if (previous === undefined) {
+            delete process.env.CI;
+        } else {
+            process.env.CI = previous;
         }
     }
 }

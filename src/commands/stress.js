@@ -6,16 +6,31 @@ import { runArtillery } from "../stress/artilleryRunner.js";
 import { parseArtilleryResult } from "../stress/stressResultParser.js";
 import { reportStressConsole } from "../stress/stressRenderer.js";
 import { writeStressMarkdownReport } from "../reporters/stressMarkdownReport.js";
+import { createStressSpinner, printIntro } from "../cli/terminal.js";
 
 export async function runStressCommand(args, options = {}) {
   if (args.todo || args.sarif) {
     throw new Error("The stress command supports console output, --json, and --report.");
   }
 
-  const result = await runStress({
+  const stressOptions = {
     rootPath: path.resolve(args.path || "."),
     ...validateStressOptions(args)
-  }, options);
+  };
+
+  printIntro(args);
+
+  const spinner = createStressSpinner(args);
+  if (spinner) spinner.start();
+
+  let result;
+  try {
+    result = await runStress(stressOptions, options);
+    if (spinner) spinner.succeed("Stress test complete. Now the pressure readings.");
+  } catch (error) {
+    if (spinner) spinner.fail("Stress test stopped before results were printed.");
+    throw error;
+  }
 
   if (args.json) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

@@ -270,6 +270,6 @@ Each check is a plain ESM module with an `id`, metadata, and async `run(context)
 
 ## What It Does Not Guarantee
 
-ItWorksBut is a static heuristic scanner, not a pentest, SAST replacement, dependency vulnerability database, or runtime security monitor. Findings intentionally use wording such as "possible", "potential", and "appears to" when a check is heuristic.
+ItWorksBut is a static heuristic scanner. Findings intentionally use wording such as "possible", "potential", and "appears to" when a check is heuristic.
 
 Use it as a CI guardrail for common project hygiene and security mistakes. For production systems, combine it with code review, tests, dependency scanning, secrets scanning, threat modeling, and focused security assessment.
