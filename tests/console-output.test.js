@@ -33,6 +33,27 @@ test('--json contains no banner and is valid JSON', async () => {
     assert.equal(output.includes('receipts'), false);
 });
 
+test('deps command runs only dependency checks', async () => {
+    const root = await fixture();
+    const output = execFileSync(
+        process.execPath,
+        [cliPath, 'deps', '--path', root, '--json', '--fail-on', 'critical'],
+        {
+            encoding: 'utf8',
+            env: { ...process.env, CI: 'true' },
+        },
+    );
+
+    const parsed = JSON.parse(output);
+
+    assert.equal(parsed.meta.categories.length, 1);
+    assert.equal(parsed.meta.categories[0], 'dependencies');
+    assert.equal(parsed.checks.length > 0, true);
+    assert.equal(parsed.checks.every(check => check.category === 'dependencies'), true);
+    assert.equal(parsed.checks.some(check => check.id === 'dependencies.outdated-packages'), true);
+    assert.equal(parsed.checks.some(check => check.id === 'git.gitignore-missing'), false);
+});
+
 test('--sarif contains no banner and is valid SARIF JSON', async () => {
     const root = await fixture();
     const output = execFileSync(

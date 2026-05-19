@@ -7,11 +7,14 @@ import { packageInfo } from "./packageInfo.js";
 export async function scanProject(options = {}) {
   const startedAt = new Date();
   const context = await createContext(options);
+  const includedCategories = normalizeFilter(options.categories);
   const findings = [];
   const checkResults = [];
   const warnings = [];
 
   for (const check of checks) {
+    if (includedCategories && !includedCategories.has(check.category)) continue;
+
     if (context.config.checks[check.id] === false) {
       checkResults.push(normalizeCheckResult(check, {
         status: "skip",
@@ -75,6 +78,7 @@ export async function scanProject(options = {}) {
       version: packageInfo.version,
       rootPath: context.rootPath,
       packageName: context.packageJson?.name,
+      categories: includedCategories ? [...includedCategories] : undefined,
       packageManager: context.packageManager,
       gitAvailable: context.gitAvailable,
       filesScanned: context.allFiles.length,
@@ -83,4 +87,9 @@ export async function scanProject(options = {}) {
       completedAt: new Date().toISOString()
     }
   };
+}
+
+function normalizeFilter(values) {
+  if (!Array.isArray(values) || values.length === 0) return null;
+  return new Set(values.map((value) => String(value).trim()).filter(Boolean));
 }

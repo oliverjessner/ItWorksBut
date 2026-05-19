@@ -25,7 +25,7 @@ async function main() {
         return 0;
     }
 
-    if (args.command !== 'scan') {
+    if (!['scan', 'deps'].includes(args.command)) {
         printUsage();
         return 2;
     }
@@ -42,6 +42,7 @@ async function main() {
             configPath: args.config,
             failOn: args.failOn,
             verbose: args.verbose,
+            categories: args.command === 'deps' ? ['dependencies'] : undefined,
         });
         if (spinner) spinner.succeed('Scan complete. Now the receipts.');
     } catch (error) {

@@ -5,6 +5,7 @@ export function printUsage() {
 
 Usage:
   itworksbut scan [options]
+  itworksbut deps [options]
 
 Options:
   --path <path>       Project path to scan. Defaults to current directory.

@@ -49,6 +49,7 @@ Common commands:
 
 ```sh
 itworksbut scan --path .
+itworksbut deps
 itworksbut scan --fail-on high
 itworksbut scan --json
 itworksbut scan --sarif > itworksbut.sarif
@@ -63,8 +64,10 @@ itworksbut --version
 
 ```text
 itworksbut scan [options]
+itworksbut deps [options]
 ```
 
+- `deps`: Run only dependency checks, including lockfile hygiene, install-script risk, audit script availability, and outdated packages.
 - `--path <path>`: Scan a specific project directory. Defaults to the current directory.
 - `--config <path>`: Use a custom config file. Defaults to `itworksbut.config.json` when present.
 - `--fail-on <severity>`: Exit with code `1` when a finding at or above the severity exists. Levels: `critical`, `high`, `medium`, `low`, `info`. Default: `low`.
