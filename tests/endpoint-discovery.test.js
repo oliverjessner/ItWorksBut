@@ -23,6 +23,20 @@ test("endpoint discovery finds Express router.get routes", async () => {
   assertEndpoint(result.safeEndpoints, "GET", "/users");
 });
 
+test("endpoint discovery ignores non-route get calls in frontend code", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "frontend/app.js",
+    'const path = formData.get("path");\nconst contentType = response.headers.get("content-type");\n'
+  );
+
+  const result = await discoverEndpoints(root);
+
+  assert.equal(result.endpoints.length, 0);
+  assert.equal(result.status, "skip");
+});
+
 test("endpoint discovery applies mounted API prefixes to router routes", async () => {
   const root = await fixture();
   await writeFile(root, "server.js", 'app.use("/api", router);\n');
@@ -31,6 +45,36 @@ test("endpoint discovery applies mounted API prefixes to router routes", async (
   const result = await discoverEndpoints(root);
 
   assertEndpoint(result.safeEndpoints, "GET", "/api/users");
+  assertNoEndpoint(result.endpoints, "GET", "/users");
+});
+
+test("endpoint discovery scopes mounted router prefixes to imported router modules", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "server.js",
+    [
+      'const { createUsersRouter } = require("./routes/users");',
+      'const { createAdminRouter } = require("./routes/admin");',
+      'app.use("/api/users", createUsersRouter());',
+      'app.use("/api/admin", createAdminRouter());',
+      'app.use("/vendor/widgets", express.static("vendor/widgets"));',
+      'app.use("/api", rateLimit({ max: 10 }));',
+      ""
+    ].join("\n")
+  );
+  await writeFile(root, "routes/users.js", 'const router = express.Router();\nrouter.get("/list", handler);\n');
+  await writeFile(root, "routes/admin.js", 'const router = express.Router();\nrouter.get("/dashboard", handler);\n');
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/users/list");
+  assertEndpoint(result.safeEndpoints, "GET", "/api/admin/dashboard");
+  assertNoEndpoint(result.endpoints, "GET", "/list");
+  assertNoEndpoint(result.endpoints, "GET", "/dashboard");
+  assertNoEndpoint(result.endpoints, "GET", "/api/list");
+  assertNoEndpoint(result.endpoints, "GET", "/api/users/dashboard");
+  assertNoEndpoint(result.endpoints, "GET", "/vendor/widgets/list");
 });
 
 test("endpoint discovery finds Fastify route calls and route objects", async () => {
@@ -83,6 +127,15 @@ test("endpoint discovery finds SvelteKit server routes", async () => {
   assertEndpoint(result.safeEndpoints, "GET", "/api/health");
 });
 
+test("endpoint discovery finds exported const route handlers", async () => {
+  const root = await fixture();
+  await writeFile(root, "src/routes/api/health/+server.ts", "export const GET = async () => Response.json({ ok: true });\n");
+
+  const result = await discoverEndpoints(root);
+
+  assertEndpoint(result.safeEndpoints, "GET", "/api/health");
+});
+
 test("endpoint discovery finds Nitro server API routes", async () => {
   const root = await fixture();
   await writeFile(root, "server/api/health.get.ts", "export default defineEventHandler(() => ({ ok: true }));\n");
@@ -99,6 +152,20 @@ test("endpoint discovery infers SAST API candidate files", async () => {
   const result = await discoverEndpoints(root);
 
   assertEndpoint(result.safeEndpoints, "GET", "/health");
+});
+
+test("endpoint discovery does not infer vendored route assets as API endpoints", async () => {
+  const root = await fixture();
+  await writeFile(
+    root,
+    "src/routes/vendor/cytoscape-elk/history.js",
+    "export function toJson(history) { return JSON.stringify(history); }\nconst response = new Response('{}');\n"
+  );
+
+  const result = await discoverEndpoints(root);
+
+  assert.equal(result.endpoints.some((endpoint) => endpoint.path === "/vendor/cytoscape-elk/history"), false);
+  assert.equal(result.status, "skip");
 });
 
 test("endpoint discovery marks dynamic routes as skipped", async () => {
@@ -148,6 +215,14 @@ function assertEndpoint(endpoints, method, routePath) {
     endpoints.some((endpoint) => endpoint.method === method && endpoint.path === routePath),
     true,
     `Expected ${method} ${routePath}. Actual: ${endpoints.map((endpoint) => `${endpoint.method} ${endpoint.path}`).join(", ")}`
+  );
+}
+
+function assertNoEndpoint(endpoints, method, routePath) {
+  assert.equal(
+    endpoints.some((endpoint) => endpoint.method === method && endpoint.path === routePath),
+    false,
+    `Did not expect ${method} ${routePath}. Actual: ${endpoints.map((endpoint) => `${endpoint.method} ${endpoint.path}`).join(", ")}`
   );
 }
 
