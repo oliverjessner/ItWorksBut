@@ -26,6 +26,15 @@
         "brew:formula": "node ./scripts/publish-brew.js",
         "prepublishOnly": "node ./scripts/guard-npm-publish.js"
     },
+    "author": {
+        "name": "oliverjessner",
+        "url": "https://oliverjessner.at"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/oliverjessner/ItWorksBut/"
+    },
+    "homepage": "https://oliverjessner.at/itworksbut",
     "keywords": [
         "security",
         "ci",
