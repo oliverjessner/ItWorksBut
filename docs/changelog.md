@@ -1,3 +1,8 @@
+# 0.7.4
+
+- update deps
+- and fixing itworksbut problems
+
 # 0.5.0
 
 - `auth.missing-csrf-protection` – Detects cookie-based auth without obvious CSRF protection.

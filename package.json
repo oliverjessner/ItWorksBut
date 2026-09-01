@@ -1,6 +1,6 @@
 {
     "name": "itworksbut",
-    "version": "0.7.3",
+    "version": "0.7.4",
     "description": "Static CI checks for common security, repo, dependency, build, and deployment risks in JavaScript vibe coding projects.",
     "type": "module",
     "bin": {
@@ -45,14 +45,14 @@
     ],
     "license": "MIT",
     "dependencies": {
-        "@smithy/config-resolver": "4.5.3",
-        "@smithy/node-config-provider": "4.4.3",
-        "@smithy/property-provider": "4.2.3",
-        "artillery": "2.0.30",
+        "@smithy/config-resolver": "4.7.2",
+        "@smithy/node-config-provider": "4.6.2",
+        "@smithy/property-provider": "4.5.2",
+        "artillery": "2.0.34",
         "boxen": "^8.0.1",
-        "chalk": "^5.6.2",
+        "chalk": "^6.0.0",
         "cli-table3": "^0.6.5",
-        "figlet": "^1.11.0",
+        "figlet": "^1.11.4",
         "gradient-string": "^3.0.0",
         "ora": "^9.4.0"
     }
